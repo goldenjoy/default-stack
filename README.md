@@ -431,7 +431,7 @@ directamente en el stack B.
 - La `service_role` key de Supabase **jamás** sale del servidor.
 - Headers de seguridad en Next.js: CSP, HSTS, `X-Frame-Options`, `Referrer-Policy`.
 - CORS restringido a dominios conocidos.
-- Rate limiting en auth y endpoints públicos (§12.3).
+- Rate limiting en auth y endpoints públicos.
 - Verificación de firma en todos los webhooks entrantes.
 - **Backoffice:** 2FA obligatorio, sesión corta, y log de cada acción sobre datos de clientes.
 - Dependabot o Renovate para parches de seguridad automáticos.
@@ -493,7 +493,7 @@ Cuando se cumple **cualquiera** de estas señales.
 | **Un tercero va a consumir la API.** | Clientes, integradores o dispositivos necesitan un contrato estable, versionado, con su propio ciclo de vida y su propio rate limit. |
 | **Lógica de negocio con muchos módulos y reglas.** | Facturación, inventario, agendamiento, motores de reglas. Cuando la lógica deja de ser CRUD, necesita estructura impuesta. |
 | **Más de un desarrollador backend.** | Módulos, inyección de dependencias y límites claros dejan de ser ceremonia y pasan a ser lo que evita pisarse. |
-| **Trabajos en cola que fallan y cuestan dinero.** | Si necesitas BullMQ, necesitas un proceso encendido (§12.2). |
+| **Trabajos en cola que fallan y cuestan dinero.** | Si necesitas BullMQ, necesitas un proceso encendido (§11.2). |
 
 ### 21.1 Proyectos que nacen en stack B
 
@@ -625,7 +625,7 @@ La decisión:
 | Se agrega | Cuándo |
 |---|---|
 | **`@nestjs/websockets`** (Socket.IO) | Cuando se necesita push del servidor al cliente que Supabase Realtime no cubre: notificaciones de procesos largos, colaboración en vivo. |
-| **Broker MQTT** (EMQX / Mosquitto) | Telemetría IoT de alta frecuencia (§14, fase 2). NestJS lo consume con `@nestjs/microservices`. |
+| **Broker MQTT** (EMQX / Mosquitto) | Telemetría IoT de alta frecuencia (§13, opción 2). NestJS lo consume con `@nestjs/microservices`. |
 | **TimescaleDB** | Series de tiempo con agregación y retención. |
 
 ---
@@ -675,7 +675,7 @@ UI en vivo: cliente ──suscripción Realtime──> Supabase (gobernado por R
 | **api** | **Railway** o **Fly.io** al inicio; VPS al escalar | Contenedor siempre encendido, deploy por git push, barato. |
 | **worker** | El mismo proveedor que la API, servicio aparte | Escala independiente. Un pico de trabajos no afecta la latencia de la API. |
 | **Redis** | Upstash, o Redis en contenedor junto a la API | Si ya hay contenedores, Redis propio sale más barato a volumen alto. |
-| Postgres | **Supabase** (sin cambios) | O autohospedado según §10.2. |
+| Postgres | **Supabase** (sin cambios) | O autohospedado según §9.2. |
 | Cargas GPU / procesamiento pesado | Contenedor dedicado (ECS, EC2, RunPod, infraestructura propia) | **Nunca** en la API ni en serverless. Se invoca por cola desde el worker. |
 
 ---
@@ -699,7 +699,7 @@ El orden importa: cada paso deja el sistema funcionando. No hay un "gran switch"
 8. **Cortar el acceso directo del frontend a la base.** Rotar la `service_role` key y quitarla de
    las variables de entorno de Vercel. Este es el punto de no retorno y la verificación real de que
    la migración terminó.
-9. **Revisar RLS** bajo el criterio de §26.1: sigue activo, ahora como defensa en profundidad.
+9. **Revisar RLS** bajo el criterio de §24.1: sigue activo, ahora como defensa en profundidad.
 10. **Agregar OpenTelemetry** y verificar que una traza cruza web → API → worker completa.
 
 **Qué NO hacer:** migrar todo en una rama larga. Cada módulo migrado va a `main` y a producción por
