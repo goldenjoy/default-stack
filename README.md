@@ -1,10 +1,22 @@
 # Stack Tecnológico — Apps Web y Móviles
 
-> Documento de referencia para todos los proyectos nuevos de apps web y móviles.
 > **Autor:** Michael Santiago · **Última actualización:** 2026-09-12 · **Versión:** 2.0
 
-Este documento define el stack por defecto. Desviarse de él es válido, pero debe justificarse
-por escrito en el README del proyecto que se desvía.
+## Qué es esto
+
+El stack por defecto con el que construyo apps web y móviles: TypeScript de punta a punta,
+Next.js, React Native, Postgres y NestJS cuando hace falta. Está escrito como estándar de
+trabajo, no como lista de tecnologías favoritas — cada elección trae la razón por la que está
+ahí, el **disparador concreto** que obliga a cambiarla, y lo que se evaluó y se descartó.
+
+Lo publico por dos motivos. Un stack que no se puede defender por escrito no es una decisión, es
+una costumbre; escribirlo obliga a comprobar cada seis meses si todavía se sostiene. Y a quien
+vaya a trabajar conmigo — cliente o equipo — le dice más ver cómo decido que ver una lista de
+logos.
+
+Es un estándar por defecto, no un dogma: desviarse es válido, pero debe justificarse por escrito
+en el README del proyecto que se desvía. El historial de commits registra qué cambió y por qué,
+y §33 lleva el registro de versiones.
 
 ## Cómo leer este documento
 
@@ -374,9 +386,8 @@ que el usuario no debe esperar. Con reintentos, backoff y dead-letter queue.
 persiste agregado cada N minutos.
 
 **7. Buffer de telemetría IoT.**
-Muy relevante para SLM: los dispositivos escriben a Redis a alta frecuencia y un proceso vuelca
-lotes a Postgres/TimescaleDB cada X segundos. Evita miles de INSERT individuales que matarían la
-base. También sirve para guardar el "último estado conocido" de cada dispositivo, que es la
+Los dispositivos escriben a Redis a alta frecuencia y un proceso vuelca lotes a
+Postgres/TimescaleDB cada X segundos. Evita miles de INSERT individuales que matarían la base. También sirve para guardar el "último estado conocido" de cada dispositivo, que es la
 consulta más frecuente de cualquier dashboard IoT.
 
 **8. Sesiones, tokens de un solo uso y feature flags cacheados.**
@@ -610,7 +621,7 @@ funciones de larga duración, o procesamiento pesado.
 **Regla de portabilidad:** el proyecto debe poder desplegarse en ambos desde el día uno. Nada de
 APIs exclusivas de Vercel en la lógica de negocio.
 
-**Nota crítica para SLM:** el procesamiento pesado y las cargas de GPU **nunca** van en funciones
+**Nota crítica:** el procesamiento pesado y las cargas de GPU **nunca** van en funciones
 serverless — los límites de tiempo y memoria no dan. Van en contenedores dedicados (ECS, EC2,
 RunPod o infraestructura propia), invocados por cola. Si el producto tiene este componente, nace
 directamente en modo B.
@@ -1055,3 +1066,15 @@ proyecto real. Los cambios se registran aquí.
 | 2026-09-12 | 1.0 | Versión inicial. |
 | 2026-09-12 | 1.1 | Backend (stack, contrato de API, hosting); caché, colas, cron y Redis; almacenamiento de archivos como sección propia (R2 principal, Supabase Storage alternativa); diseño/prototipado con IA y MCP; seguridad; observabilidad; fundamentos por fase; connection pooling; alternativas de monorepo evaluadas. |
 | 2026-09-12 | 2.0 | Reestructurado en dos modos: stack base sin backend dedicado (Parte A) y delta de backend dedicado con NestJS (Parte B), con secciones explícitas de qué se retira, reemplaza y agrega. Se formalizan las cuatro superficies fijas (landing, web clientes, backoffice, móvil) y el monorepo pasa a cuatro apps. Se retira tRPC del stack completo en favor de REST + OpenAPI generado desde Zod. Se elimina Hono como etapa intermedia de backend. Nuevas secciones: migración A → B, qué no cambia, RLS bajo backend dedicado. |
+
+---
+
+## Licencia
+
+© 2026 Michael Santiago. Este documento se publica bajo licencia
+[Creative Commons Attribution 4.0 International](https://creativecommons.org/licenses/by/4.0/)
+(CC BY 4.0): puedes copiarlo, adaptarlo y usarlo en tus propios proyectos, incluso
+comercialmente, siempre que des crédito.
+
+Si lo adaptas para tu equipo, me interesa saberlo — sobre todo si llegaste a una conclusión
+distinta en alguna decisión. El texto completo de la licencia está en [LICENSE](LICENSE).
