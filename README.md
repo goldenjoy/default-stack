@@ -14,14 +14,14 @@ en el README del proyecto que se desvía.
 
 ## Cómo leer este documento
 
-Está organizado en **dos Stack de operación**:
+Está organizado en **dos Stack**:
 
 | Stack | Qué es |
 |---|---|
 | **Stack A — Stack base** (§1–§20) | Sin backend dedicado. Toda la lógica de servidor vive dentro de Next.js: Server Actions y Route Handlers. **Es el punto de partida de todo proyecto nuevo** y cubre cómodamente la mayoría de los productos. |
 | **Stack B — Backend dedicado** (§21–§27) | NestJS como servicio propio. No es un stack distinto: es un **delta** sobre el Stack A — ¿qué se retira?, ¿qué se reemplaza? y ¿qué se agrega?, para más información visitar §23. |
 
-Las sección §28 aplican a los dos Stacks.
+La sección §28 aplican a los dos Stacks.
 
 Muchas secciones están escritas en la opción más barata para arrancar y la
 recomendable al escalar.
@@ -557,7 +557,7 @@ ISR. Lo que se va es `unstable_cache` sobre datos de negocio, que ahora cachea e
 | Supavisor (modo transacción) | **Pool de conexiones del proceso** (`pg.Pool` vía Drizzle) | Un proceso, un pool, conexiones reutilizadas. Más eficiente que cualquier pooler externo. |
 | Pino en Route Handlers | **`nestjs-pino`** con `AsyncLocalStorage` | `requestId` propagado automáticamente por toda la cadena, incluidos los jobs de la cola. |
 | Sentry solo en frontends | **+ Sentry Node SDK en API y worker** | Los errores de negocio ahora ocurren en el backend; ahí es donde hay que verlos. |
-| Vercel como único hosting | **Vercel (landing, app, admin) + contenedor (api, worker)** | Ver §28. |
+| Vercel como único hosting | **Vercel (landing, app, admin) + contenedor (api, worker)** | Ver §26.2 |
 
 ### 24.1 Qué pasa con RLS
 
@@ -652,7 +652,7 @@ proyecto/
 └─ pnpm-workspace.yaml
 ```
 
-**Flujo de una petición:**
+### 26.1 Flujo de una petición
 
 ```
 Cliente (web o móvil)
@@ -667,7 +667,7 @@ Cliente (web o móvil)
 UI en vivo: cliente ──suscripción Realtime──> Supabase (gobernado por RLS)
 ```
 
-**Hosting:**
+### 26.2 Hosting
 
 | Componente | Dónde | Por qué |
 |---|---|---|
