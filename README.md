@@ -14,14 +14,14 @@ en el README del proyecto que se desvía.
 
 ## Cómo leer este documento
 
-Está organizado en **dos Stack**:
+Está organizado en **dos stacks**:
 
 | Stack | Qué es |
 |---|---|
 | **Stack A — Stack base** (§1–§20) | Sin backend dedicado. Toda la lógica de servidor vive dentro de Next.js: Server Actions y Route Handlers. **Es el punto de partida de todo proyecto nuevo** y cubre cómodamente la mayoría de los productos. |
 | **Stack B — Backend dedicado** (§21–§27) | NestJS como servicio propio. No es un stack distinto: es un **delta** sobre el Stack A — ¿qué se retira?, ¿qué se reemplaza? y ¿qué se agrega?, para más información visitar §23. |
 
-La sección §28 aplican a los dos Stacks.
+La sección §28 aplica a los dos Stacks.
 
 Muchas secciones están escritas en la opción más barata para arrancar y la
 recomendable al escalar.
@@ -547,7 +547,7 @@ ISR. Lo que se va es `unstable_cache` sobre datos de negocio, que ahora cachea e
 | Zod suelto en cada handler | **`nestjs-zod`** (`createZodDto` + `ZodValidationPipe`) | Consume los **mismos** esquemas de `packages/shared`. No se reescribe nada. |
 | OpenAPI con `zod-openapi` | **`@nestjs/swagger` + `nestjs-zod`** | El documento se genera del mismo Zod. Los clientes de `packages/api-client` se regeneran y siguen tipados igual. |
 | Sesión leída con `supabase-js` en el servidor de Next | **Verificación del JWT de Supabase en NestJS** | Guard con `passport-jwt` validando contra el JWKS de Supabase. El token que emite Supabase Auth es el mismo; cambia quién lo verifica. |
-| **Autorización por RLS** | **Guards + CASL en el backend** | Este es el cambio conceptual más importante. Ver §26.1. |
+| **Autorización por RLS** | **Guards + CASL en el backend** | Ver §24.1. |
 | `supabase-js` como cliente de datos | **Cliente OpenAPI generado** (`orval` / `openapi-fetch`) en los cuatro productos | Una sola forma de hablar con los datos, idéntica en web y móvil. |
 | Cliente de base en el frontend | **Drizzle dentro de NestJS**, con el esquema en `packages/db` | El esquema deja de ser compartido con el frontend: solo el backend importa `packages/db`. |
 | Migraciones con Supabase CLI | **`drizzle-kit` ejecutado desde el pipeline** | Sigue siendo el Postgres de Supabase. Cambia quién es dueño del esquema: el repo del backend, no el dashboard. |
