@@ -6,8 +6,6 @@
 
 TypeScript de arriba a abajo, Postgres abajo del todo.
 
-<br/>
-
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
 ![Zod](https://img.shields.io/badge/Zod-3E67B1?style=for-the-badge&logo=zod&logoColor=white)
 ![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)
@@ -17,18 +15,13 @@ TypeScript de arriba a abajo, Postgres abajo del todo.
 ![Supabase](https://img.shields.io/badge/Supabase-3FCF8E?style=for-the-badge&logo=supabase&logoColor=white)
 ![Claude Code](https://img.shields.io/badge/Claude_Code-D97757?style=for-the-badge&logo=claude&logoColor=white)
 
-<br/>
-
-*Esto es mi punto de partida por defecto, no un dogma.*
-*Salirse está permitido.*
-
 </div>
 
 ---
 
 ## 🗺️ Arquitectura
 
-Casi todo lo que construyo cabe aquí. **Sin backend aparte**: la lógica de servidor vive dentro de Next.js y la base de datos hace su parte.
+Casi todo lo que construyo cabe aquí. **Sin backend**: la lógica de servidor vive dentro de Next.js y la base de datos esta a parte.
 
 ```mermaid
 flowchart TB
@@ -105,7 +98,7 @@ El andamiaje de IA es parte del repo, no algo de cada quien:
 
 ---
 
-## 👀 Frontend y UIS
+## 👀 Frontend y UI
 
 ![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)
 ![React Native](https://img.shields.io/badge/React_Native-61DAFB?style=for-the-badge&logo=react&logoColor=black)
@@ -195,7 +188,7 @@ Si aparecen miles de dispositivos conectados o escrituras sub-segundo, ahí sí 
 
 ---
 
-## 🧰 La caja de herramientas
+## 🧰 Repositorio
 
 ![Turborepo](https://img.shields.io/badge/Turborepo-EF4444?style=for-the-badge&logo=turborepo&logoColor=white)
 ![pnpm](https://img.shields.io/badge/pnpm-F69220?style=for-the-badge&logo=pnpm&logoColor=white)
@@ -227,7 +220,7 @@ proyecto/
 
 ---
 
-## 📤 Dónde vive
+## 📤 Hosting y CI/CD
 
 ![Vercel](https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)
 ![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?style=for-the-badge&logo=githubactions&logoColor=white)
