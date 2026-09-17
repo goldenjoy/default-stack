@@ -4,8 +4,7 @@
 
 **Con esto construyo apps web, móviles y de escritorio.**
 
-TypeScript de arriba a abajo, Postgres abajo del todo,
-y cero infraestructura que no me esté resolviendo un problema **hoy**.
+TypeScript de arriba a abajo, Postgres abajo del todo.
 
 <br/>
 
@@ -21,13 +20,13 @@ y cero infraestructura que no me esté resolviendo un problema **hoy**.
 <br/>
 
 *Esto es mi punto de partida por defecto, no un dogma.*
-*Salirse está permitido — solo hay que dejar escrito por qué.*
+*Salirse está permitido.*
 
 </div>
 
 ---
 
-## 🗺️ El mapa, de un vistazo
+## 🗺️ Arquitectura
 
 Casi todo lo que construyo cabe aquí. **Sin backend aparte**: la lógica de servidor vive dentro de Next.js y la base de datos hace su parte.
 
@@ -75,7 +74,7 @@ flowchart TB
 
 ---
 
-## 🤖 Cómo lo construyo
+## 🤖 Planeación
 
 ![Claude Code](https://img.shields.io/badge/Claude_Code-D97757?style=for-the-badge&logo=claude&logoColor=white)
 ![SDD](https://img.shields.io/badge/Spec--Driven_Development-6E56CF?style=for-the-badge)
@@ -95,18 +94,18 @@ El andamiaje de IA es parte del repo, no algo de cada quien:
 
 ---
 
-## 🗣️ El idioma común
+## 🗣️ Lenguaje
 
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
 ![Zod](https://img.shields.io/badge/Zod-3E67B1?style=for-the-badge&logo=zod&logoColor=white)
 
-**TypeScript en modo estricto.** Sin `any` implícito, sin excusas.
+**TypeScript en modo estricto.** Sin `any` implícito.
 
 **Zod valida todo lo que cruza una frontera**: formularios, respuestas de API, variables de entorno, webhooks. Los esquemas viven en `packages/shared` y un mismo esquema es tres cosas a la vez: la validación, el tipo (`z.infer`) y el OpenAPI que consumen los clientes. Se escribe una vez.
 
 ---
 
-## 👀 Lo que se ve
+## 👀 Frontend y UIS
 
 ![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)
 ![React Native](https://img.shields.io/badge/React_Native-61DAFB?style=for-the-badge&logo=react&logoColor=black)
@@ -125,15 +124,7 @@ Son cinco superficies y todas comparten los mismos tipos, los mismos tokens de d
 | 📱 **Móvil** | iOS y Android para el cliente final. | React Native + Expo |
 | 🖥️ **Escritorio** | Cuando el producto tiene que vivir en la máquina. | Tauri v2 |
 
-**Next.js (App Router)** con React Server Components. Server Actions para las mutaciones de la propia web, Route Handlers para todo lo demás. SSR/ISR en lo público, client components solo donde hay interactividad real.
-
-> ⚠️ Una Server Action **es un endpoint público con otro nombre**. Se valida la entrada con Zod y se verifica la sesión *dentro* de la acción, siempre. Que el botón esté detrás del login no es control de acceso.
-
-**Expo** (managed) con Expo Router, EAS Build para los binarios y EAS Update para parches de JS sin pasar por la tienda. Dos cosas se configuran el día uno o duelen después: **push notifications** (agregarlo tarde obliga a rehacer el onboarding) y **deep links** (cambiarlos rompe enlaces ya publicados en correos y campañas).
-
-**Tauri v2** para escritorio: reaprovecha el mismo frontend de React, usa el WebView del sistema y el binario pesa megabytes en vez de cientos.
-
-**Estilos:** Tailwind + shadcn/ui en web, Tailwind vía NativeWind en móvil. Los tokens se comparten desde `packages/ui`.
+**Estilos:** Tailwind + shadcn/ui en web, Tailwind vía NativeWind en móvil.
 
 ---
 
@@ -142,25 +133,23 @@ Son cinco superficies y todas comparten los mismos tipos, los mismos tokens de d
 ![TanStack Query](https://img.shields.io/badge/TanStack_Query-FF4154?style=for-the-badge&logo=reactquery&logoColor=white)
 ![Zustand](https://img.shields.io/badge/Zustand-433E38?style=for-the-badge)
 
-La regla cabe en una línea:
+TanStack Query se encarga de caché, reintentos, invalidación y estados de carga — igual en web que en Expo. Zustand para lo del frontend y nada más: tema, filtros, el wizard abierto. Nunca datos que ya son del servidor.
 
 > **Si el dato tiene dueño en la base de datos, es de TanStack Query.**
 > **Si solo existe mientras la pantalla está abierta, es de Zustand o `useState`.**
 
-TanStack Query se encarga de caché, reintentos, invalidación y estados de carga — igual en web que en Expo. Zustand para lo del frontend y nada más: tema, filtros, el wizard abierto. Nunca datos que ya son del servidor.
-
 ---
 
-## 🤝 El contrato
+## 🤝 Contrato API
 
 ![OpenAPI](https://img.shields.io/badge/REST_+_OpenAPI-6BA539?style=for-the-badge&logo=openapiinitiative&logoColor=white)
 
-| Camino | Para quién |
+|  | Para quién |
 |---|---|
 | **Server Actions** | Formularios y mutaciones de las apps web. Función tipada, sin endpoint que mantener. |
 | **REST + OpenAPI** | Móvil, escritorio, integraciones, clientes externos y dispositivos IoT. |
 
-El OpenAPI **se genera desde los mismos esquemas Zod**, y de ahí sale un cliente tipado en `packages/api-client`. Nadie escribe tipos de API a mano.
+El OpenAPI **se genera desde los mismos esquemas Zod**. No se escriben tipos de API a mano.
 
 ---
 
@@ -170,29 +159,27 @@ El OpenAPI **se genera desde los mismos esquemas Zod**, y de ahí sale un client
 ![Drizzle](https://img.shields.io/badge/Drizzle_ORM-C5F74F?style=for-the-badge&logo=drizzle&logoColor=black)
 ![Supabase](https://img.shields.io/badge/Supabase-3FCF8E?style=for-the-badge&logo=supabase&logoColor=white)
 
-**PostgreSQL + Drizzle ORM**, siempre. Drizzle da tipado completo desde el esquema y genera SQL predecible, sin sorpresas de rendimiento en queries complejas. Migraciones con `drizzle-kit`, versionadas en el repo.
+**PostgreSQL + Drizzle ORM**. Drizzle da tipado completo desde el esquema y genera SQL predecible, sin sorpresas de rendimiento en queries complejas.
 
-**Supabase** es quien lo hospeda y administra, y de paso trae Auth, Storage y Realtime. Lo importante: por debajo es Postgres estándar, así que el día que haga falta mover la base a un VPS o a Neon, el esquema y el SQL se van tal cual.
-
-Se autohospeda cuando el cliente exige los datos en su propia infraestructura, cuando hay requisitos de residencia o compliance, o cuando el volumen hace que Supabase salga más caro que un VPS.
+**Supabase** hospeda y administra, y trae Auth, Storage y Realtime. Por debajo es Postgres, el día que haga falta mover la base a un VPS, el esquema y el SQL se van tal cual.
 
 ### 🔐 Auth
 
 **Supabase Auth**: email + contraseña, magic links y OAuth con Google y Apple — *Apple es obligatorio* si hay login social en iOS. En Expo la sesión se guarda en `expo-secure-store`, nunca en AsyncStorage plano.
 
-**El backoffice usa el mismo proveedor pero otro modelo de permisos**: tabla `staff_roles` aparte, políticas propias y **2FA obligatorio** desde el día uno para cualquier cuenta que toque datos de clientes.
+**El backoffice usa el mismo proveedor pero otro modelo de permisos**: políticas propias y **2FA obligatorio** para cualquier cuenta que toque datos de clientes.
 
 Cuando llegue un cliente enterprise pidiendo "que mis empleados entren con el Microsoft de la empresa": SSO con SAML/OIDC, SCIM para aprovisionar usuarios y log de auditoría.
 
-### ⚡ Tiempo real
+### ⚡ En tiempo real
 
-**Supabase Realtime.** La UI se suscribe a los cambios de Postgres por WebSocket y se actualiza sola, sin montar nada extra. Alcanza de sobra para dashboards en vivo, notificaciones, presencia, chat y telemetría de baja frecuencia.
+**Supabase Realtime.** La UI se suscribe a los cambios de Postgres por WebSocket y se actualiza sola. Alcanza de sobra para dashboards en vivo, notificaciones, presencia, chat y telemetría de baja frecuencia.
 
 Si aparecen miles de dispositivos conectados o escrituras sub-segundo, ahí sí toca **MQTT** (EMQX o Mosquitto) como broker, **Redis** de buffer y **TimescaleDB** para las series de tiempo. Realtime se queda igual para el frontend: MQTT alimenta la base, la base alimenta la UI.
 
 ---
 
-## 🔌 Lo que no construyo
+## 🔌 Servicios de terceros
 
 ![Stripe](https://img.shields.io/badge/Stripe-635BFF?style=for-the-badge&logo=stripe&logoColor=white)
 ![Resend](https://img.shields.io/badge/Resend-000000?style=for-the-badge&logo=resend&logoColor=white)
@@ -262,12 +249,7 @@ proyecto/
 
 ## ⏳ Caché y trabajos programados
 
-<details>
-<summary><b>Lo aburrido pero necesario</b> — cómo empieza y cuándo se cambia</summary>
-
-<br/>
-
-**Caché, gratis y sin infraestructura:** la caché nativa de Next.js (`revalidate`, `unstable_cache`, ISR), el CDN de Vercel y TanStack Query en el cliente. Cubre bastante más de lo que la gente asume. **Redis no se agrega antes de tiempo.**
+**Caché, gratis y sin infraestructura:** la caché nativa de Next.js (`revalidate`, `unstable_cache`, ISR), el CDN de Vercel y TanStack Query en el cliente. **Cubre bastante más de lo que la gente asume.**
 
 Redis entra cuando pasa alguna de estas: queries lentas que se repiten mucho, rate limiting de verdad (contadores compartidos entre instancias), trabajos en segundo plano con reintentos, o invalidación de caché desde varios productos a la vez.
 
@@ -282,13 +264,10 @@ Redis entra cuando pasa alguna de estas: queries lentas que se repiten mucho, ra
 
 > 🔔 **La señal para dejar de improvisar:** cuando un trabajo que falla sin reintento automático empiece a costar dinero o soporte, ya necesitas cola real.
 
-</details>
-
 ---
 
-## 🛡️ Para dormir tranquilo
+## 🛡️ Seguridad y Observabilidad
 
-<details>
 <summary><b>Seguridad</b> — lo que va desde el día uno</summary>
 
 <br/>
@@ -306,9 +285,6 @@ Redis entra cuando pasa alguna de estas: queries lentas que se repiten mucho, ra
 
 **Al escalar:** Cloudflare WAF delante, log de auditoría (carísimo de agregar después, porque hay que reconstruir historia), rotación centralizada de secretos con Doppler o Infisical, pentest antes de certificaciones, y GDPR / habeas data: exportación y borrado de datos, retención definida, consentimiento de cookies.
 
-</details>
-
-<details>
 <summary><b>Observabilidad</b> — enterarte tú antes que el cliente</summary>
 
 <br/>
@@ -320,23 +296,20 @@ Redis entra cuando pasa alguna de estas: queries lentas que se repiten mucho, ra
 
 **Al escalar:** OpenTelemetry cuando haya más de un servicio, logs centralizados y buscables, dashboards de métricas de negocio (no solo técnicas) y alertas con on-call definido.
 
-</details>
-
 ---
+<br/>
 
 <div align="center">
 
-# 🏗️ Para cuando es necesario un backend dedicado
+# Para cuando es necesario un backend dedicado
 
 </div>
 
-Llega un punto en que meter la lógica dentro de Next.js deja de tener sentido. **Crecer no es el disparador** — el stack de arriba aguanta muchísimo más de lo que la gente supone. Lo es alguna de estas:
+Para cuando meter la lógica dentro de Next.js deja de tener sentido. Agregar un **backend dedicado** cuando:
 
 > 📱 La app móvil es el cliente principal · ⏱️ Procesos que superan el límite de serverless · 🔌 Hace falta conexión persistente (WebSocket propio, MQTT, workers) · 🏢 Un tercero va a consumir la API · 📐 La lógica dejó de ser CRUD · 👥 Más de un desarrollador backend · 💸 Trabajos en cola que fallan y cuestan dinero
 
 Y hay productos que nacen aquí directamente: plataformas IoT con ingesta de telemetría, productos donde la app móvil *es* el producto, sistemas con GPU desde el día uno, o proyectos donde el cliente exige la API como entregable.
-
-Esto es lo que cambia. Nada más.
 
 ### ➕ Lo que se agrega
 
@@ -423,7 +396,7 @@ Esto es lo que cambia. Nada más.
 
 <div align="center">
 
-### 📚 ¿Quieres el porqué de cada decisión?
+### 📚 Para más información
 
 Todo esto está argumentado en largo, con los disparadores exactos de cada migración:
 
@@ -437,7 +410,7 @@ Todo esto está argumentado en largo, con los disparadores exactos de cada migra
 
 [![CC BY 4.0](https://img.shields.io/badge/Licencia-CC_BY_4.0-lightgrey?style=for-the-badge)](https://creativecommons.org/licenses/by/4.0/)
 
-Puedes copiarlo, adaptarlo y usarlo en tus proyectos, incluso comercialmente. Solo da crédito.
+Puedes copiarlo, adaptarlo y usarlo en tus proyectos, incluso comercialmente.
 
 Si lo adaptas para tu equipo me interesa saberlo — **sobre todo si llegaste a una conclusión distinta** en alguna decisión.
 
