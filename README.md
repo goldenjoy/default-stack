@@ -294,7 +294,7 @@ Redis entra cuando pasa alguna de estas: queries lentas que se repiten mucho, ra
 
 <div align="center">
 
-# Para cuando es necesario un backend dedicado
+# 🏗️ Para cuando es necesario un backend dedicado
 
 </div>
 
@@ -304,27 +304,97 @@ Para cuando meter la lógica dentro de Next.js deja de tener sentido. Agregar un
 
 Y hay productos que nacen aquí directamente: plataformas IoT con ingesta de telemetría, productos donde la app móvil *es* el producto, sistemas con GPU desde el día uno, o proyectos donde el cliente exige la API como entregable.
 
-### ➕ Lo que se agrega
+```mermaid
+flowchart TB
+    subgraph SUP["🖐️ Lo que toca el usuario"]
+        direction LR
+        LAND["Landing<br/>Next.js"]
+        WEB["App web<br/>Next.js"]
+        ADMIN["Backoffice<br/>Next.js"]
+        MOB["Móvil<br/>Expo"]
+        DESK["Escritorio<br/>Tauri"]
+    end
+
+    subgraph CON["📜 Un solo contrato"]
+        APIC["api-client tipado<br/>generado desde OpenAPI"]
+    end
+
+    subgraph LOG["🧠 Donde vive la lógica — servicio propio"]
+        API["apps/api — NestJS<br/>módulos · guards · pipes"]
+    end
+
+    subgraph OPT["⚙️ Solo cuando aparece la necesidad"]
+        direction LR
+        RED[("Redis<br/>caché · colas · locks")]
+        WRK["apps/worker<br/>consume las colas"]
+    end
+
+    subgraph DAT["🗄️ Donde viven los datos"]
+        direction LR
+        PG[("PostgreSQL<br/>Drizzle · Supabase · RLS")]
+        FIL["Archivos<br/>Cloudflare R2"]
+    end
+
+    subgraph EXT["🔌 Lo que no me toca construir"]
+        direction LR
+        AUTH["Supabase Auth<br/>emite el JWT"]
+        SRV["Stripe · Resend · Twilio"]
+    end
+
+    LAND --> APIC
+    WEB --> APIC
+    ADMIN --> APIC
+    MOB --> APIC
+    DESK --> APIC
+    APIC --> API
+    AUTH -. "el guard verifica el JWT" .-> API
+    API --> PG
+    API --> FIL
+    API --> SRV
+    API -. "encola" .-> RED
+    RED -. "consume" .-> WRK
+    WRK --> PG
+    WRK --> SRV
+    PG -. "Realtime, en vivo" .-> SUP
+```
+
+> ⚠️ El frontend ya no habla con la base: **todo pasa por la API**. `supabase-js` sobrevive solo para auth y Realtime.
+
+### ➕ Lo que se agrega — el mínimo
 
 ![NestJS](https://img.shields.io/badge/NestJS-E0234E?style=for-the-badge&logo=nestjs&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+
+Esto es lo que hay que montar el primer día del backend, y nada más:
+
+- **`apps/api` con NestJS**, un módulo por dominio de negocio. Guards, interceptores y pipes.
+- **`nestjs-zod`** consumiendo los **mismos** esquemas de `packages/shared`. No se reescribe una sola validación.
+- **`@nestjs/config` + Zod** validando el entorno al arrancar: si falta una variable, el proceso no levanta.
+- **`@nestjs/terminus`** con `/health/live` y `/health/ready`, que es lo que los orquestadores necesitan para no enrutar tráfico a un contenedor que aún no está listo.
+- **`nestjs-pino`** con `AsyncLocalStorage` y `requestId` propagado, **+ Sentry Node** en la API.
+- **Log de auditoría** en tabla propia. Va desde el día uno precisamente porque ahora es barato — todo pasa por el mismo interceptor — y reconstruir historia después es carísimo.
+- **Docker + docker-compose** para levantar Postgres y la API en un comando.
+- **Supertest** para los tests de API, y **staging real** con su propio proyecto de Supabase.
+
+### 📈 Lo que se agrega cuando escala
+
 ![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)
 ![BullMQ](https://img.shields.io/badge/BullMQ-C1272D?style=for-the-badge)
 ![OpenTelemetry](https://img.shields.io/badge/OpenTelemetry-000000?style=for-the-badge&logo=opentelemetry&logoColor=white)
 
-- **`apps/api` con NestJS**, un módulo por dominio de negocio. Guards, interceptores y pipes.
-- **`apps/worker`**, proceso aparte que consume las colas. Separado a propósito: un job pesado no puede degradar la latencia de la API, y cada uno escala por su lado.
-- **Redis deja de ser opcional y pasa a ser infraestructura base**: caché, colas, rate limiting, locks e idempotencia.
-- **BullMQ** con colas por tipo de trabajo, reintentos con backoff exponencial y **dead-letter queue** revisable desde el backoffice con Bull Board.
-- **`@nestjs/config` + Zod** validando el entorno al arrancar: si falta una variable, el proceso no levanta.
-- **`@nestjs/terminus`** con `/health/live` y `/health/ready`, que es lo que los orquestadores necesitan para no enrutar tráfico a un contenedor que aún no está listo.
-- **`@nestjs/throttler` sobre Redis**: rate limiting por endpoint y por rol.
-- **Docker + docker-compose** para levantar Postgres, Redis, API y worker en un comando.
-- **Staging real**: su propio proyecto de Supabase, su propia Redis, su propia API.
-- **OpenTelemetry**, porque ya hay más de un servicio y una petición tiene que poder seguirse desde el clic hasta el job en la cola.
-- **Log de auditoría** en tabla propia — barato ahora, porque todo pasa por el mismo interceptor.
-- **Secretos centralizados** (Doppler o Infisical): con cinco entornos de ejecución, copiar claves a mano es la fuente de errores.
-- **Supertest** para los tests de API.
-- *Según el producto:* `@nestjs/websockets`, broker MQTT, TimescaleDB.
+Nada de esto entra por defecto. Cada uno tiene su disparador, y hasta que no aparezca es infraestructura que hay que operar, pagar y monitorear a cambio de nada:
+
+| Qué | Cuándo entra |
+|---|---|
+| **Redis** | Cuando haya **algo concreto** que atender: queries lentas que se repiten, rate limiting compartido entre varias instancias, locks o idempotencia distribuida — o colas, que lo arrastran. Con una sola instancia de API, `@nestjs/throttler` en memoria y la caché de Nest en proceso alcanzan. |
+| **BullMQ + `apps/worker`** | Cuando haya trabajo en segundo plano que deba reintentar. Proceso aparte a propósito: un job pesado no puede degradar la latencia de la API, y cada uno escala por su lado. Con colas por tipo de trabajo, backoff exponencial y **dead-letter queue** revisable con Bull Board desde el backoffice. |
+| **`@nestjs/throttler` sobre Redis** | Cuando haya más de una instancia de API: a partir de ahí los contadores en memoria dejan de contar bien. |
+| **`@nestjs/schedule`** | Cuando los trabajos programados dejen de ser mantenimiento SQL puro y necesiten la lógica de negocio al lado. Antes de eso, Vercel Cron y `pg_cron` siguen siendo suficientes. |
+| **OpenTelemetry** | Cuando ya haya más de un servicio — típicamente al aparecer el worker — y una petición tenga que poder seguirse desde el clic hasta el job en la cola. |
+| **Secretos centralizados** (Doppler o Infisical) | Cuando los entornos de ejecución se multipliquen. Con cinco, copiar claves a mano es la fuente de errores. |
+| **`@nestjs/websockets`, broker MQTT, TimescaleDB** | Según el producto, no según el tamaño. Si es IoT o tiempo real, entran el día uno. |
+
+> 🧭 **El criterio:** si la respuesta a "¿por qué Redis?" es "porque toca", todavía no toca.
 
 ### 🔄 Lo que se reemplaza
 
@@ -338,11 +408,11 @@ Y hay productos que nacen aquí directamente: plataformas IoT con ingesta de tel
 | `supabase-js` como cliente de datos | → **Cliente OpenAPI generado** (`orval` / `openapi-fetch`) en las cinco superficies |
 | Drizzle importado por el frontend | → **Drizzle solo dentro de NestJS**; `packages/db` deja de ser compartido |
 | Migraciones desde el dashboard | → **`drizzle-kit` desde el pipeline** |
-| `unstable_cache` de Next | → **`CacheModule` de Nest sobre Redis** |
-| Vercel Cron | → **`@nestjs/schedule`** + repeatable jobs de BullMQ |
+| `unstable_cache` de Next | → **`CacheModule` de Nest** — en memoria al inicio, sobre Redis cuando Redis entre |
+| Vercel Cron | → **`@nestjs/schedule`** + repeatable jobs de BullMQ, *el día que entren* |
 | Pino suelto | → **`nestjs-pino`** con `AsyncLocalStorage`, `requestId` propagado hasta los jobs |
-| Sentry solo en frontends | → **+ Sentry Node** en API y worker |
-| Solo Vercel | → **Vercel** (webs) **+ contenedor** en Railway o Fly.io (api y worker) |
+| Sentry solo en frontends | → **+ Sentry Node** en la API (y en el worker, si existe) |
+| Solo Vercel | → **Vercel** (webs) **+ contenedor** en Railway o Fly.io (api, y el worker si existe) |
 
 > **Sobre RLS:** sigue activo, pero ya no como única defensa — NestJS se conecta con identidad de servicio y pasaría todo. Se queda como defensa en profundidad y porque **sigue gobernando las suscripciones de Realtime**, que se conectan con la anon key. Una tabla nueva nace con RLS activo igual. Cuesta cero.
 
@@ -352,8 +422,8 @@ Y hay productos que nacen aquí directamente: plataformas IoT con ingesta de tel
 - **Route Handlers como API del producto.** `app/api/*` deja de ser el backend; quedan el callback de auth, el health check, revalidate y los proxies de sesión.
 - **Acceso directo a la base desde el frontend.** `supabase-js` se conserva **solo** para auth y Realtime.
 - **La `service_role` key fuera del backend.** Ninguna app web vuelve a tener una clave con poder sobre la base.
-- **Vercel Cron como orquestador.** `pg_cron` sobrevive, pero solo para mantenimiento SQL.
-- **QStash / Inngest / Trigger.dev.** Ya hay servidor: BullMQ sale más barato y da control total. Inngest se queda únicamente si hay flujos de negocio largos donde su visibilidad valga el costo.
+- **Vercel Cron como orquestador**, en cuanto entre `@nestjs/schedule`. Hasta entonces se queda. `pg_cron` sobrevive en los dos casos, pero solo para mantenimiento SQL.
+- **QStash / Inngest / Trigger.dev**, el día que entre BullMQ: ya hay servidor, y sale más barato y con control total. Inngest se queda únicamente si hay flujos de negocio largos donde su visibilidad valga el costo.
 - **Supavisor en modo transacción.** NestJS es un proceso persistente con pool propio.
 
 > ✅ **Lo que parece que se va y no se va:** la caché nativa de Next.js sigue viva para páginas e ISR. Lo que se muda es el caché de datos de negocio.
