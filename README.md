@@ -1,740 +1,444 @@
-# Stack Tecnológico — Apps Web y Móviles
+<div align="center">
 
-> **Autor:** Michael Santiago · **Última actualización:** 2026-09-12 · **Versión:** 2.0
+# 🧱 Mi stack
 
-## Qué es esto
+**Con esto construyo apps web, móviles y de escritorio.**
 
-El stack por defecto con el que construyo apps web y móviles: TypeScript de punta a punta,
-Next.js, React Native, Postgres y NestJS cuando hace falta. Está escrito como estándar de
-trabajo, no como lista de tecnologías favoritas — cada elección trae la razón por la que está
-ahí.
+TypeScript de arriba a abajo, Postgres abajo del todo,
+y cero infraestructura que no me esté resolviendo un problema **hoy**.
 
-Es un estándar por defecto, no un dogma: desviarse es válido, pero debe justificarse por escrito
-en el README del proyecto que se desvía. 
+<br/>
 
-## Cómo leer este documento
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
+![Zod](https://img.shields.io/badge/Zod-3E67B1?style=for-the-badge&logo=zod&logoColor=white)
+![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)
+![Expo](https://img.shields.io/badge/Expo-000020?style=for-the-badge&logo=expo&logoColor=white)
+![Tauri](https://img.shields.io/badge/Tauri-24C8D8?style=for-the-badge&logo=tauri&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
+![Supabase](https://img.shields.io/badge/Supabase-3FCF8E?style=for-the-badge&logo=supabase&logoColor=white)
+![Claude Code](https://img.shields.io/badge/Claude_Code-D97757?style=for-the-badge&logo=claude&logoColor=white)
 
-Está organizado en **dos stacks**:
+<br/>
 
-| Stack | Qué es |
-|---|---|
-| **Stack A — Stack base** (§1–§20) | Sin backend dedicado. Toda la lógica de servidor vive dentro de Next.js: Server Actions y Route Handlers. **Es el punto de partida de todo proyecto nuevo** y cubre cómodamente la mayoría de los productos. |
-| **Stack B — Backend dedicado** (§21–§27) | NestJS como servicio propio. No es un stack distinto: es un **delta** sobre el Stack A — ¿qué se retira?, ¿qué se reemplaza? y ¿qué se agrega?, para más información visitar §23. |
+*Esto es mi punto de partida por defecto, no un dogma.*
+*Salirse está permitido — solo hay que dejar escrito por qué.*
 
-La sección §28 aplica a los dos Stacks.
-
-Muchas secciones están escritas en la opción más barata para arrancar y la
-recomendable al escalar.
+</div>
 
 ---
 
-# STACK BASE
+## 🗺️ El mapa, de un vistazo
 
-## 1. Resumen
+Casi todo lo que construyo cabe aquí. **Sin backend aparte**: la lógica de servidor vive dentro de Next.js y la base de datos hace su parte.
 
-| Capa | Stack A — Stack base | Stack B — Backend dedicado |
+```mermaid
+flowchart TB
+    subgraph SUP["🖐️ Lo que toca el usuario"]
+        direction LR
+        LAND["Landing<br/>Next.js"]
+        WEB["App web<br/>Next.js"]
+        ADMIN["Backoffice<br/>Next.js"]
+        MOB["Móvil<br/>Expo"]
+        DESK["Escritorio<br/>Tauri"]
+    end
+
+    subgraph LOG["🧠 Donde vive la lógica — dentro de Next.js"]
+        direction LR
+        SACT["Server Actions<br/>lo que hace la propia web"]
+        ROUT["Route Handlers<br/>REST + OpenAPI"]
+    end
+
+    subgraph DAT["🗄️ Donde viven los datos"]
+        direction LR
+        PG[("PostgreSQL<br/>Drizzle · Supabase · RLS")]
+        FIL["Archivos<br/>Cloudflare R2"]
+    end
+
+    subgraph EXT["🔌 Lo que no me toca construir"]
+        direction LR
+        SRV["Stripe · Resend · Twilio"]
+    end
+
+    LAND --> SACT
+    WEB --> SACT
+    ADMIN --> SACT
+    WEB --> ROUT
+    ADMIN --> ROUT
+    MOB --> ROUT
+    DESK --> ROUT
+    SACT --> PG
+    ROUT --> PG
+    ROUT --> FIL
+    ROUT --> SRV
+    PG -. "Realtime, en vivo" .-> SUP
+```
+
+---
+
+## 🤖 Cómo lo construyo
+
+![Claude Code](https://img.shields.io/badge/Claude_Code-D97757?style=for-the-badge&logo=claude&logoColor=white)
+![SDD](https://img.shields.io/badge/Spec--Driven_Development-6E56CF?style=for-the-badge)
+
+**Claude Code** como agente y **SDD (Spec-Driven Development)** como método: primero se escribe la especificación, después el código. Suena lento y es exactamente al revés — el agente escribe mucho más rápido de lo que yo reviso, así que el cuello de botella es tener claro qué se quiere antes de que existan 400 líneas.
+
+El andamiaje de IA es parte del repo, no algo de cada quien:
+
+| Archivo | Para qué |
+|---|---|
+| **`CLAUDE.md`** | Arquitectura, comandos y reglas del proyecto. Es lo que evita que la IA proponga cosas fuera del stack. |
+| **`.claude/skills/`** | Lo repetitivo escrito una sola vez: crear un módulo, agregar una migración, preparar un release. |
+| **`.claude/settings.json`** | Hooks y permisos, iguales para todo el equipo. |
+| **`.mcp.json`** | Los MCP versionados: Figma, Supabase, Sentry, Stripe, Playwright, GitHub, Context7. |
+
+> **Reglas duras que van sí o sí en `CLAUDE.md`:** nunca tocar migraciones ya aplicadas, nunca commitear secretos, siempre validar con Zod en los bordes.
+
+---
+
+## 🗣️ El idioma común
+
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
+![Zod](https://img.shields.io/badge/Zod-3E67B1?style=for-the-badge&logo=zod&logoColor=white)
+
+**TypeScript en modo estricto.** Sin `any` implícito, sin excusas.
+
+**Zod valida todo lo que cruza una frontera**: formularios, respuestas de API, variables de entorno, webhooks. Los esquemas viven en `packages/shared` y un mismo esquema es tres cosas a la vez: la validación, el tipo (`z.infer`) y el OpenAPI que consumen los clientes. Se escribe una vez.
+
+---
+
+## 👀 Lo que se ve
+
+![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)
+![React Native](https://img.shields.io/badge/React_Native-61DAFB?style=for-the-badge&logo=react&logoColor=black)
+![Expo](https://img.shields.io/badge/Expo-000020?style=for-the-badge&logo=expo&logoColor=white)
+![Tauri](https://img.shields.io/badge/Tauri-24C8D8?style=for-the-badge&logo=tauri&logoColor=white)
+![Tailwind](https://img.shields.io/badge/Tailwind_CSS-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)
+![shadcn/ui](https://img.shields.io/badge/shadcn%2Fui-000000?style=for-the-badge&logo=shadcnui&logoColor=white)
+
+Son cinco superficies y todas comparten los mismos tipos, los mismos tokens de diseño y el mismo contrato de datos.
+
+| Superficie | Qué es | Con qué |
 |---|---|---|
-| Lenguaje | TypeScript (modo estricto) + Zod | igual |
-| Web | Next.js (App Router) | igual, pero sin lógica de negocio |
-| Móvil | React Native + Expo | igual |
-| UI | Tailwind CSS + shadcn/ui (web) · NativeWind (móvil) | igual |
-| Estado / datos | TanStack Query + Zustand | igual |
-| Lógica de servidor | Server Actions + Route Handlers | **NestJS** (módulos, DI, guards) |
-| Contrato de API | REST + OpenAPI generado desde Zod | igual, generado con `nestjs-zod` |
-| Base de datos | Supabase (Postgres gestionado) · alternativa: Postgres + Drizzle | igual, pero el acceso pasa solo por el backend |
-| Auth | Supabase Auth | Supabase Auth + verificación del JWT en NestJS |
-| Autorización | RLS en la base | Guards en el backend · RLS como defensa en profundidad |
-| Caché | Caché de Next.js → Redis (Upstash) | Redis, obligatorio desde el inicio |
-| Colas y cron | Vercel Cron + pg_cron → QStash / Inngest | **BullMQ** sobre Redis, con worker propio |
-| Archivos | Cloudflare R2 (principal) · Supabase Storage (alternativa) | igual |
-| Tiempo real | Supabase Realtime | igual (+ MQTT si hay telemetría) |
-| Monorepo | Turborepo + pnpm | igual, + `apps/api` y `apps/worker` |
-| Testing | Vitest (unit) + Playwright (E2E) | + Supertest para la API |
-| Lint / Format | Biome | igual |
-| Hosting | Vercel | Vercel (frontends) + contenedor (API y worker) |
-| Pagos | Stripe | igual, webhooks en el backend |
-| Email | Resend | igual |
-| Observabilidad | Sentry + PostHog + Pino | + OpenTelemetry |
-| Diseño / IA | v0 + Figma (Dev Mode MCP) + Claude Code con MCP | igual |
+| 🛬 **Landing** | Lo público: qué es el producto, precios, blog, SEO. | Next.js estático (SSG) |
+| 💻 **App web** | El producto de verdad, después del login. | Next.js (App Router) |
+| 🎛️ **Backoffice** | El panel interno: soporte, métricas, cuentas. | Next.js (App Router) |
+| 📱 **Móvil** | iOS y Android para el cliente final. | React Native + Expo |
+| 🖥️ **Escritorio** | Cuando el producto tiene que vivir en la máquina. | Tauri v2 |
+
+**Next.js (App Router)** con React Server Components. Server Actions para las mutaciones de la propia web, Route Handlers para todo lo demás. SSR/ISR en lo público, client components solo donde hay interactividad real.
+
+> ⚠️ Una Server Action **es un endpoint público con otro nombre**. Se valida la entrada con Zod y se verifica la sesión *dentro* de la acción, siempre. Que el botón esté detrás del login no es control de acceso.
+
+**Expo** (managed) con Expo Router, EAS Build para los binarios y EAS Update para parches de JS sin pasar por la tienda. Dos cosas se configuran el día uno o duelen después: **push notifications** (agregarlo tarde obliga a rehacer el onboarding) y **deep links** (cambiarlos rompe enlaces ya publicados en correos y campañas).
+
+**Tauri v2** para escritorio: reaprovecha el mismo frontend de React, usa el WebView del sistema y el binario pesa megabytes en vez de cientos.
+
+**Estilos:** Tailwind + shadcn/ui en web, Tailwind vía NativeWind en móvil. Los tokens se comparten desde `packages/ui`.
 
 ---
 
-## 2. Productos
+## 🧠 Estado en el cliente
 
-| Producto | Qué es | Tecnología | Dominio |
-|---|---|---|---|
-| **Landing** | Sitio público de marketing: qué es el producto, precios, blog, SEO. | Next.js estático (SSG). Astro solo si es puramente informativa y jamás tendrá sesión. | `dominio.com` |
-| **Web clientes** | El producto en sí, tras login. | Next.js (App Router) | `app.dominio.com` |
-| **Web backoffice** | Panel interno: soporte, administración, métricas, gestión de cuentas. | Next.js (App Router) | `****.dominio.com` |
-| **Móvil** | App iOS/Android para el cliente final. | React Native + Expo | tiendas + deep links |
+![TanStack Query](https://img.shields.io/badge/TanStack_Query-FF4154?style=for-the-badge&logo=reactquery&logoColor=white)
+![Zustand](https://img.shields.io/badge/Zustand-433E38?style=for-the-badge)
 
----
+La regla cabe en una línea:
 
-## 3. Lenguaje y validación
+> **Si el dato tiene dueño en la base de datos, es de TanStack Query.**
+> **Si solo existe mientras la pantalla está abierta, es de Zustand o `useState`.**
 
-- **TypeScript** con `strict: true`. Sin `any` implícito.
-- **Zod** para validar todo lo que cruza una frontera: formularios, respuestas de API, variables
-  de entorno, payloads de webhooks. Los esquemas de Zod viven en `packages/shared` y se usan en los cuatro productos y en el
-  backend. Un solo esquema es a la vez la validación, la fuente del tipo (`z.infer`) y el esquema
-  OpenAPI que consumen los clientes (§8).
+TanStack Query se encarga de caché, reintentos, invalidación y estados de carga — igual en web que en Expo. Zustand para lo del frontend y nada más: tema, filtros, el wizard abierto. Nunca datos que ya son del servidor.
 
 ---
 
-## 4. Web — Next.js (App Router)
+## 🤝 El contrato
 
-- **Next.js** con App Router y React Server Components.
-- **Server Actions** para los cambios en los datos (mutaciones) de las apps web.
-- **Route Handlers** (`app/api/*`) para todo lo que no es un formulario de la propia web: la API
-  que consume la app móvil, los webhooks entrantes y los endpoints públicos (§8).
-- SSR/ISR para páginas públicas e indexables; client components solo donde hay interactividad real.
+![OpenAPI](https://img.shields.io/badge/REST_+_OpenAPI-6BA539?style=for-the-badge&logo=openapiinitiative&logoColor=white)
 
-**Nota:** una Server Action es código de servidor con apariencia de función local. Se
-valida su entrada con Zod y se verifica la sesión **dentro** de la acción, siempre. Que el botón
-esté detrás del login no es control de acceso.
-
-**Cuándo NO usar Next.js:** una landing puramente estática y sin sesión puede ir en Astro.
-
----
-
-## 5. Móvil — React Native + Expo
-
-- **Expo** (managed workflow) con **Expo Router**, navegación basada en archivos igual que Next.js.
-- **EAS Build** para compilar binarios iOS/Android.
-- **EAS Update** para actualizaciones OTA de JS sin pasar por las tiendas.
-- **expo-notifications** para push. Se configura desde el inicio: agregarlo después obliga a
-  rehacer el onboarding y a pedir permisos en mal momento.
-- **Deep links / universal links** definidos desde el día uno — cambiarlos después rompe enlaces
-  ya publicados en emails y campañas.
-- Código nativo custom solo vía config plugins; se evita salir a bare workflow salvo necesidad real.
-
----
-
-## 6. UI y estilos
-
-| Plataforma | Solución |
+| Camino | Para quién |
 |---|---|
-| Web (landing, apps web) | Tailwind CSS + shadcn/ui (sobre Radix UI) |
-| Móvil | Tailwind vía NativeWind |
+| **Server Actions** | Formularios y mutaciones de las apps web. Función tipada, sin endpoint que mantener. |
+| **REST + OpenAPI** | Móvil, escritorio, integraciones, clientes externos y dispositivos IoT. |
+
+El OpenAPI **se genera desde los mismos esquemas Zod**, y de ahí sale un cliente tipado en `packages/api-client`. Nadie escribe tipos de API a mano.
 
 ---
 
-## 7. Estado y datos en el cliente
+## 🗄️ Los datos
 
-- **TanStack Query** — todo lo que viene del servidor: caché, reintentos, invalidación, estados
-  de carga y error. Funciona igual en web y en Expo.
-- **Zustand** — estado global del frontend (tema, filtros, wizard abierto, sesión en memoria).
-  Nunca datos que ya son del servidor.
-- **useState / Context** — estado local de un componente o subárbol.
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
+![Drizzle](https://img.shields.io/badge/Drizzle_ORM-C5F74F?style=for-the-badge&logo=drizzle&logoColor=black)
+![Supabase](https://img.shields.io/badge/Supabase-3FCF8E?style=for-the-badge&logo=supabase&logoColor=white)
 
-**Regla:** si el dato tiene dueño en la base de datos, es de TanStack Query. Si solo existe
-mientras la pantalla está abierta, es de Zustand o useState.
+**PostgreSQL + Drizzle ORM**, siempre. Drizzle da tipado completo desde el esquema y genera SQL predecible, sin sorpresas de rendimiento en queries complejas. Migraciones con `drizzle-kit`, versionadas en el repo.
+
+**Supabase** es quien lo hospeda y administra, y de paso trae Auth, Storage y Realtime. Lo importante: por debajo es Postgres estándar, así que el día que haga falta mover la base a un VPS o a Neon, el esquema y el SQL se van tal cual.
+
+Se autohospeda cuando el cliente exige los datos en su propia infraestructura, cuando hay requisitos de residencia o compliance, o cuando el volumen hace que Supabase salga más caro que un VPS.
+
+### 🔐 Auth
+
+**Supabase Auth**: email + contraseña, magic links y OAuth con Google y Apple — *Apple es obligatorio* si hay login social en iOS. En Expo la sesión se guarda en `expo-secure-store`, nunca en AsyncStorage plano.
+
+**El backoffice usa el mismo proveedor pero otro modelo de permisos**: tabla `staff_roles` aparte, políticas propias y **2FA obligatorio** desde el día uno para cualquier cuenta que toque datos de clientes.
+
+Cuando llegue un cliente enterprise pidiendo "que mis empleados entren con el Microsoft de la empresa": SSO con SAML/OIDC, SCIM para aprovisionar usuarios y log de auditoría.
+
+### ⚡ Tiempo real
+
+**Supabase Realtime.** La UI se suscribe a los cambios de Postgres por WebSocket y se actualiza sola, sin montar nada extra. Alcanza de sobra para dashboards en vivo, notificaciones, presencia, chat y telemetría de baja frecuencia.
+
+Si aparecen miles de dispositivos conectados o escrituras sub-segundo, ahí sí toca **MQTT** (EMQX o Mosquitto) como broker, **Redis** de buffer y **TimescaleDB** para las series de tiempo. Realtime se queda igual para el frontend: MQTT alimenta la base, la base alimenta la UI.
 
 ---
 
-## 8. API y contrato de datos
+## 🔌 Lo que no construyo
 
-| Camino | Para quién | Cómo |
+![Stripe](https://img.shields.io/badge/Stripe-635BFF?style=for-the-badge&logo=stripe&logoColor=white)
+![Resend](https://img.shields.io/badge/Resend-000000?style=for-the-badge&logo=resend&logoColor=white)
+![Twilio](https://img.shields.io/badge/Twilio-F22F46?style=for-the-badge&logoColor=white)
+![Cloudflare R2](https://img.shields.io/badge/Cloudflare_R2-F38020?style=for-the-badge&logo=cloudflare&logoColor=white)
+
+| Qué | Con qué | Por qué ese |
 |---|---|---|
-| **Server Actions** | Formularios y mutaciones de las apps web. | Función tipada del servidor. Sin endpoint ni contrato que mantener. |
-| **REST + OpenAPI** | App móvil, integraciones, clientes externos, dispositivos IoT. | Route Handlers con esquemas Zod, documentados automáticamente. |
+| 💳 **Pagos** | Stripe | Webhooks con firma verificada, siempre. |
+| ✉️ **Email** | Resend | API limpia, plantillas en React. |
+| 💬 **SMS / WhatsApp** | Twilio | Cobertura y entregabilidad sin pelear con operadores. |
+| 📦 **Archivos** | Cloudflare R2 · *alt:* Supabase Storage | R2 **no cobra egreso**, y esa es la diferencia grande. Supabase Storage si el volumen es bajo y prefieres una dependencia menos. |
 
 ---
 
-## 9. Base de datos
+## 🧰 La caja de herramientas
 
-Dos escenarios soportados. **Ambos son Postgres**, así que el esquema y la lógica SQL son portables.
+![Turborepo](https://img.shields.io/badge/Turborepo-EF4444?style=for-the-badge&logo=turborepo&logoColor=white)
+![pnpm](https://img.shields.io/badge/pnpm-F69220?style=for-the-badge&logo=pnpm&logoColor=white)
+![Biome](https://img.shields.io/badge/Biome-60A5FA?style=for-the-badge&logo=biome&logoColor=white)
+![Vitest](https://img.shields.io/badge/Vitest-6E9F18?style=for-the-badge&logo=vitest&logoColor=white)
+![Playwright](https://img.shields.io/badge/Playwright-2EAD33?style=for-the-badge&logoColor=white)
 
-### 9.1 Escenario A — Cloud (por defecto)
-
-**Supabase**: Postgres gestionado + Auth + Storage + Realtime, con Row Level Security.
-
-- Se usa para la mayoría de proyectos: MVPs, productos nuevos, clientes sin requisitos de
-  residencia de datos.
-- La seguridad vive en **RLS a nivel de base**, no solo en el código de la app.
-- Migraciones versionadas con Supabase CLI, dentro del repo.
-
-### 9.2 Escenario B — Autohospedado
-
-**Postgres + Drizzle ORM**.
-
-- Aplica si: el cliente exige datos en su propia infraestructura, hay requisitos de compliance o
-  residencia de datos, o el volumen hace que Supabase salga más caro que un VPS.
-- Drizzle da tipado completo desde el esquema y genera SQL predecible, sin sorpresas de rendimiento.
-- Migraciones con `drizzle-kit`, versionadas en el repo.
-- Postgres en Docker, o servicio gestionado (Neon / RDS) si se prefiere no operarlo.
-
----
-
-## 10. Autenticación — Supabase Auth
-
-- Email + contraseña, magic links y OAuth (Google, Apple — **Apple es obligatorio** si hay login
-  social en iOS).
-- En Expo, la sesión se persiste en `expo-secure-store`, nunca en AsyncStorage plano.
-- Roles y permisos de cliente en una tabla propia, referenciada desde las políticas RLS (Row Level Security), es una seguridad de Postgres.
-- **El backoffice usa el mismo proveedor pero otro modelo de permisos**: tabla `staff_roles`
-  separada, políticas propias y, desde el inicio, **2FA obligatorio** para cualquier cuenta con
-  acceso a datos de clientes.
-
-> En el escenario autohospedado (§9.2), Supabase Auth puede seguir usándose como servicio
-> independiente de la base, o reemplazarse por **Better Auth** sobre el mismo Postgres (decisión por proyecto).
-
-**Al escalar (clientes enterprise):** Para cuando una empresa te diga "Quiero que mis empleados entren con nuestro Microsoft/Google corporativo y 
-que podamos controlar sus cuentas.". SSO con SAML/OIDC, SCIM para aprovisionamiento de usuarios,
-y log de auditoría.
-
----
-
-## 11. Caché, colas y trabajos programados
-
-### 11.1 Caché
-
-**Opción 1 — Sin infraestructura adicional ($0):**
-
-- Caché nativa de Next.js: `revalidate` en fetch, `unstable_cache` para funciones costosas,
-  ISR para páginas.
-- CDN de Vercel para assets y respuestas estáticas.
-- TanStack Query en el cliente: evita refetch innecesario en web y móvil.
-
-Esto cubre bastante más de lo que la gente asume. No se agrega Redis antes de tiempo.
-
-**Opción 2 — Redis, cuando ocurre alguna de estas señales:**
-
-- Queries que tardan cientos de milisegundos y se repiten mucho.
-- Necesitas rate limiting real (contadores compartidos entre instancias).
-- Hay trabajos en segundo plano con reintentos.
-- Necesitas invalidar caché desde varios productos a la vez.
-
-### 11.2 Trabajos programados (cron)
-
-**Opción 1 ($0):**
-
-| Herramienta | Para qué |
-|---|---|
-| **Vercel Cron** | Tareas HTTP: reportes diarios, limpieza, sincronizaciones. Se define en `vercel.json`. Verificar la frecuencia permitida por el plan. |
-| **pg_cron** (Supabase) | Tareas que son puro SQL: purgar registros viejos, refrescar vistas materializadas, agregar métricas. Corre dentro de la base, sin red de por medio. |
-
-**Opción 2 — cuando los trabajos crecen:**
-
-| Herramienta | Para qué |
-|---|---|
-| **QStash** (Upstash) | Cola por HTTP con reintentos y programación. Funciona en serverless, sin servidor que mantener. Escalón natural desde Vercel Cron. |
-| **Inngest** / **Trigger.dev** | Flujos de varios pasos, durables, con reintentos por paso y visibilidad de cada ejecución. Para procesos de negocio largos. |
-| **BullMQ** sobre Redis | Máximo control y menor costo por trabajo. **Requiere un proceso worker siempre encendido** — no funciona en Vercel serverless. En la práctica, si ya necesitas esto, estás en el stack B (§21). |
-
-**Disparador de migración:** cuando un trabajo fallido sin reintento automático empiece a costar
-dinero o soporte, ya necesitas cola real.
-
----
-
-## 12. Almacenamiento de archivos
-
-| Opción | Cuándo |
-|---|---|
-| **Cloudflare R2** (principal) | Por defecto. **Sin cargos de egreso**, que es la diferencia grande con la competencia. |
-| **Supabase Storage** (alternativa) | Cuando el proyecto ya vive en Supabase y el volumen es bajo: una dependencia menos, y las políticas de acceso usan el mismo RLS y el mismo `auth.uid()` que el resto. Se paga egreso. |
-
----
-
-## 13. Tiempo real y telemetría
-
-### Opción 1 — Inicio (mínimo costo)
-
-**Supabase Realtime**.
-
-- Los dispositivos y clientes escriben por API REST (Route Handler o PostgREST).
-- La UI se suscribe a cambios de Postgres por WebSocket: actualizaciones en vivo sin
-  infraestructura adicional.
-- Incluido en el plan de Supabase, sin servicio extra que operar.
-
-**Suficiente para:** dashboards en vivo, notificaciones, presencia, chat, y telemetría de baja
-frecuencia — decenas o cientos de dispositivos reportando cada varios segundos.
-
-### Opción 2 — Al escalar
-
-Migrar cuando ocurra **cualquiera** de estas señales:
-
-- Miles de dispositivos conectados simultáneamente.
-- Escrituras de alta frecuencia (sub-segundo por dispositivo) que inflan la tabla y degradan queries.
-- Dispositivos con red intermitente o restricciones de batería/ancho de banda, donde HTTP resulta
-  demasiado costoso.
-- Se necesitan consultas de series de tiempo: agregaciones por ventana, retención, downsampling.
-
-Entonces:
-
-- **MQTT** (EMQX o Mosquitto) como broker de ingesta: protocolo ligero, QoS configurable,
-  conexiones persistentes. Diseñado exactamente para este caso.
-- **Redis como buffer** (Buffer de telemetría IoT). Los dispositivos escriben a Redis a alta frecuencia 
-  y un proceso vuelca lotes a Postgres/TimescaleDB cada X segundos. Evita miles de INSERT individuales. 
-  También sirve para guardar el "último estado conocido" de cada dispositivo, 
-  que es la consulta más frecuente de cualquier dashboard IoT.
-- **TimescaleDB** — extensión de Postgres para series de tiempo: hypertables, compresión,
-  agregados continuos y políticas de retención. Sigue siendo Postgres, el resto del stack no cambia.
-- Supabase Realtime se mantiene para el frontend: MQTT alimenta la base, la base alimenta el frontend.
-
-> Un broker MQTT necesita un proceso siempre encendido. Al escalar implica, casi siempre,
-> cruzar también al Stack B (§21).
-
----
-
-## 14. Monorepo — Turborepo + pnpm
+Todo en un **monorepo con Turborepo + pnpm**. Las apps comparten tipos sin publicar paquetes npm privados ni abrir dos PRs por cada cambio de contrato.
 
 ```
 proyecto/
 ├─ apps/
-│  ├─ landing/        # Next.js estático
-│  ├─ app/            # Next.js
-│  ├─ backoffice/     # Next.js
-│  └─ mobile/         # Expo
-├─ packages/
-│  ├─ shared/         # tipos, esquemas Zod, utilidades puras
-│  ├─ db/             # esquema, migraciones, cliente de datos
-│  ├─ ui/             # design tokens, componentes web, config de Tailwind
-│  ├─ api-client/     # cliente REST tipado, generado desde OpenAPI (§9.1)
-│  └─ config/         # tsconfig, biome, presets compartidos
-├─ turbo.json
-└─ pnpm-workspace.yaml
+│  ├─ landing/      # Next.js estático
+│  ├─ app/          # Next.js — clientes
+│  ├─ backoffice/   # Next.js — interno
+│  ├─ mobile/       # Expo
+│  └─ desktop/      # Tauri
+└─ packages/
+   ├─ shared/       # tipos, esquemas Zod, utilidades puras
+   ├─ db/           # esquema Drizzle y migraciones
+   ├─ ui/           # tokens de diseño, componentes, config de Tailwind
+   ├─ api-client/   # cliente REST tipado, generado desde OpenAPI
+   └─ config/       # tsconfig, biome, presets
 ```
 
-En stack B se agregan `apps/api` (NestJS) y `apps/worker` (§27).
+**Testing:** Vitest para unitarios e integración, Testing Library para componentes, Playwright para los flujos críticos en web. `tsc --noEmit` en CI como puerta de calidad. Cuando escale: k6 para carga y Maestro para E2E en móvil.
 
-### Alternativas evaluadas
+**Lint y formato:** Biome. Hace lo de ESLint y Prettier en una sola herramienta y órdenes de magnitud más rápido.
 
-| Opción | Veredicto |
+---
+
+## 📤 Dónde vive
+
+![Vercel](https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)
+![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?style=for-the-badge&logo=githubactions&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+
+**Vercel + Supabase Cloud**, y cero operación: deploys con cada push, CDN global, preview por rama. Las tres webs son tres proyectos apuntando al mismo repo. El backoffice además se protege a nivel de plataforma (IP o Vercel Authentication) — no basta con que sea "otra URL con login".
+
+**En CI, al inicio:** Vercel desplegando solo, EAS Build cuando toca release, EAS Update para el JS de por medio, y checks de `typecheck` + `biome` + `vitest` al abrir PR, con los filtros de Turborepo para correr solo lo que cambió.
+
+**Cuando el negocio ya depende de la app:** GitHub Actions como pipeline único, builds móviles automáticos a TestFlight e internal track, migraciones aplicadas desde el pipeline (nunca a mano) y un staging de verdad con su propia base y sus propias claves.
+
+**El plan B: Docker + VPS.** Next.js en modo `standalone`, Caddy o Traefik de proxy con TLS automático, Postgres en contenedor con backups **verificados** — un backup sin restore probado no es un backup. Hetzner, DigitalOcean o infraestructura propia.
+
+> 🧭 **Regla de portabilidad:** el proyecto debe poder desplegarse en los dos desde el día uno. Nada de APIs exclusivas de Vercel dentro de la lógica de negocio.
+
+> 🚫 El procesamiento pesado y las cargas de GPU **nunca** van en funciones serverless. Los límites de tiempo y memoria no dan. Van en contenedores dedicados, invocados por cola.
+
+---
+
+## ⏳ Caché y trabajos programados
+
+<details>
+<summary><b>Lo aburrido pero necesario</b> — cómo empieza y cuándo se cambia</summary>
+
+<br/>
+
+**Caché, gratis y sin infraestructura:** la caché nativa de Next.js (`revalidate`, `unstable_cache`, ISR), el CDN de Vercel y TanStack Query en el cliente. Cubre bastante más de lo que la gente asume. **Redis no se agrega antes de tiempo.**
+
+Redis entra cuando pasa alguna de estas: queries lentas que se repiten mucho, rate limiting de verdad (contadores compartidos entre instancias), trabajos en segundo plano con reintentos, o invalidación de caché desde varios productos a la vez.
+
+**Cron, gratis:**
+
+| Herramienta | Para qué |
 |---|---|
-| **Nx** | Más potente: generadores, gráfico de dependencias, caché distribuida. Justificado con 6+ apps o varios equipos. Para nuestra escala, la curva no se paga. |
-| **pnpm workspaces sin Turborepo** | Inviable con cuatro apps: el CI reconstruye todo en cada push. |
-| **Bun workspaces** | Muy rápido, pero Metro (bundler de Expo) todavía tiene fricciones. Revisar en el futuro. |
-| **Yarn Berry (PnP)** | PnP rompe React Native/Metro. Sin PnP no aporta nada sobre pnpm. |
-| **Repos separados** | Obliga a publicar los tipos como paquete npm privado; cada cambio de contrato son dos PRs y un release. Solo si son productos verdaderamente independientes. |
+| **Vercel Cron** | Tareas HTTP: reportes diarios, limpieza, sincronizaciones. |
+| **pg_cron** (Supabase) | Lo que es puro SQL: purgar registros viejos, refrescar vistas materializadas, agregar métricas. Corre dentro de la base, sin red de por medio. |
+
+**Cuando los trabajos crecen:** QStash para cola por HTTP con reintentos, o Inngest / Trigger.dev si son flujos largos de varios pasos con visibilidad por ejecución.
+
+> 🔔 **La señal para dejar de improvisar:** cuando un trabajo que falla sin reintento automático empiece a costar dinero o soporte, ya necesitas cola real.
+
+</details>
 
 ---
 
-## 15. Desarrollo asistido por IA
+## 🛡️ Para dormir tranquilo
 
-### 15.1 MCP para Claude Code
+<details>
+<summary><b>Seguridad</b> — lo que va desde el día uno</summary>
 
-| Servidor MCP | Qué habilita |
-|---|---|
-| **Figma (Dev Mode MCP)** | Claude lee el diseño real — medidas, tokens, jerarquía — y genera el componente. Elimina el "ojímetro". Requiere asiento de pago en Figma. |
-| **Supabase MCP** | Consultar el esquema, escribir migraciones y probar queries y políticas RLS sin salir del editor. |
-| **Sentry MCP** | Traer un error de producción con su stack trace y contexto directo a la sesión. |
-| **Stripe MCP** | Consultar objetos, productos y eventos en modo test al construir el flujo de pago. |
-| **Playwright MCP** | Claude abre el navegador, navega la app y verifica que el cambio funciona de verdad. |
-| **GitHub MCP** | PRs, issues y revisiones desde la sesión. |
-| **Context7** | Documentación actualizada de librerías inyectada en contexto, en vez de versiones viejas de memoria. |
-
-Configuración en `.mcp.json` del repo, versionada, para que todo el equipo tenga los mismos
-servidores.
-
-### 15.2 Convenciones de repo para IA
-
-Parte del andamiaje de cada proyecto:
-
-- **`CLAUDE.md`** en la raíz: arquitectura, comandos, convenciones y decisiones del proyecto.
-  Se genera con `/init` y se mantiene al día. Es lo que evita que la IA proponga cosas fuera del
-  stack. En un monorepo de cuatro apps, cada app puede tener el suyo con sus particularidades.
-- **`.claude/skills/`**: procedimientos repetitivos del proyecto (crear un módulo, agregar una
-  migración, preparar un release) escritos una vez.
-- **`.claude/settings.json`**: hooks y permisos compartidos por el equipo.
-- **Reglas duras** en CLAUDE.md: nunca tocar migraciones aplicadas, nunca commitear secretos,
-  siempre validar con Zod en los bordes.
-
----
-
-## 16. Testing y calidad de código
-
-| Herramienta | Uso |
-|---|---|
-| **Vitest** | Tests unitarios y de integración. Rápido, misma API que Jest. |
-| **Testing Library** | Tests de componentes (`@testing-library/react` y `/react-native`). |
-| **Playwright** | E2E de los flujos críticos en web. |
-| **Biome** | Lint + formato en una sola herramienta (reemplaza ESLint + Prettier). |
-| **TypeScript** | `tsc --noEmit` en CI como puerta de calidad. |
-
-**Al escalar:** tests de carga con **k6** y **Maestro** para E2E en móvil.
-
----
-
-## 17. CI/CD
-
-### Opción 1 — Inicio (mínimo costo)
-
-- **Vercel** desplegando automáticamente con cada push: un proyecto por app web, preview por rama,
-  producción en `main`.
-- **EAS Build manual** — se compila cuando toca release. El tier gratuito alcanza al ritmo de
-  releases de un producto nuevo.
-- **EAS Update** para cambios de JS entre releases: sin build ni revisión de tienda.
-- Checks mínimos en GitHub Actions al abrir PR: `typecheck`, `biome`, `vitest`, con filtros de
-  Turborepo para correr solo lo afectado.
-
-### Opción 2 — Al escalar
-
-Migrar cuando ocurra **cualquiera** de estas señales:
-
-- Más de un desarrollador tocando el repo a diario.
-- Releases móviles con frecuencia semanal o mayor.
-- El negocio ya depende de la app (downtime = pérdida de dinero).
-
-Entonces:
-
-- **GitHub Actions como pipeline único**: tests, typecheck, E2E de Playwright, build de las webs y
-  disparo de EAS Build/Update.
-- Builds móviles automáticos por rama de release, con submit a TestFlight y al internal track
-  de Google Play.
-- **Plan de producción de EAS** cuando la cola gratuita sea cuello de botella.
-- Migraciones de base de datos aplicadas desde el pipeline, nunca a mano.
-- **Entorno de staging real**, con su propia base de datos y sus propias claves.
-
----
-
-## 18. Infraestructura y hosting
-
-### Por defecto: Vercel + Supabase Cloud
-
-Cero operación: deploys automáticos, CDN global, escalado transparente, previews por PR.
-Es la opción correcta mientras el costo sea menor al tiempo de ingeniería que ahorra.
-
-Las tres webs son tres proyectos de Vercel apuntando al mismo repo. El backoffice se protege
-además a nivel de plataforma: restricción por IP o Vercel Authentication, para que `****.dominio.com` no sea
-simplemente "otra URL pública con login".
-
-### Alternativa: Docker + VPS
-
-Se migra cuando el costo mensual de Vercel + Supabase supere de forma sostenida lo que cuesta un
-VPS más el tiempo de mantenerlo. En la práctica el disparador suele ser ancho de banda alto,
-funciones de larga duración, o procesamiento pesado.
-
-- Next.js en modo `standalone` dentro de un contenedor Docker.
-- **Caddy** o Traefik como reverse proxy, con TLS automático.
-- Postgres en contenedor con backups automatizados **y verificados** — un backup sin restore
-  probado no es un backup.
-- Proveedores: Hetzner (mejor precio/rendimiento), DigitalOcean, o infraestructura propia.
-
-**Regla de portabilidad:** el proyecto debe poder desplegarse en ambos desde el día uno. Nada de
-APIs exclusivas de Vercel en la lógica de negocio.
-
-**Nota crítica:** el procesamiento pesado y las cargas de GPU **nunca** van en funciones
-serverless — los límites de tiempo y memoria no dan. Van en contenedores dedicados (ECS, EC2,
-RunPod o infraestructura propia), invocados por cola. Si el producto tiene este componente, nace
-directamente en el stack B.
-
----
-
-## 19. Seguridad
-
-**Desde el día uno:**
+<br/>
 
 - **RLS activo en todas las tablas.** Una tabla sin política es una tabla pública.
-- Validación de todo input con Zod en el servidor, **incluidas las Server Actions**. El cliente no
-  es de fiar y una Server Action es un endpoint público con otro nombre.
-- Variables de entorno validadas al arrancar — que falle en el build, no en producción.
+- Todo input validado con Zod en el servidor, **Server Actions incluidas**.
+- Variables de entorno validadas al arrancar: que falle en el build, no en producción.
 - La `service_role` key de Supabase **jamás** sale del servidor.
 - Headers de seguridad en Next.js: CSP, HSTS, `X-Frame-Options`, `Referrer-Policy`.
-- CORS restringido a dominios conocidos.
-- Rate limiting en auth y endpoints públicos.
-- Verificación de firma en todos los webhooks entrantes.
-- **Backoffice:** 2FA obligatorio, sesión corta, y log de cada acción sobre datos de clientes.
-- Dependabot o Renovate para parches de seguridad automáticos.
-- Los secretos viven en el gestor de variables de entorno de cada plataforma (Vercel, EAS Secrets, 
-  Docker secrets). **Nunca en el repo**, y ninguna clave secreta en bundles de cliente.
+- CORS restringido a dominios conocidos y rate limiting en auth y endpoints públicos.
+- Firma verificada en **todos** los webhooks entrantes.
+- Backoffice: 2FA obligatorio, sesión corta y log de cada acción sobre datos de clientes.
+- Secretos en el gestor de cada plataforma (Vercel, EAS Secrets, Docker secrets). **Nunca en el repo**, nunca en bundles de cliente.
+- Dependabot o Renovate para los parches automáticos.
 
-**Al escalar:**
+**Al escalar:** Cloudflare WAF delante, log de auditoría (carísimo de agregar después, porque hay que reconstruir historia), rotación centralizada de secretos con Doppler o Infisical, pentest antes de certificaciones, y GDPR / habeas data: exportación y borrado de datos, retención definida, consentimiento de cookies.
 
-- **Cloudflare WAF** delante de la app: bots, DDoS, reglas por país o patrón.
-- **Log de auditoría** de acciones sensibles (quién cambió qué y cuándo). Requisito común en venta
-  enterprise, y muy caro de agregar retroactivamente porque hay que reconstruir historia.
-- Rotación de secretos y gestión centralizada (Doppler o Infisical).
-- Pentest y revisión de dependencias antes de certificaciones.
-- Cumplimiento: GDPR/habeas data — exportación y borrado de datos del usuario, retención definida,
-  consentimiento de cookies.
+</details>
 
----
+<details>
+<summary><b>Observabilidad</b> — enterarte tú antes que el cliente</summary>
 
-## 20. Observabilidad
+<br/>
 
-**Desde el día uno:**
-
-- **Sentry** para errores y crashes, con alertas a Slack. Proyecto separado por superficie: un
-  error del backoffice no debe perderse entre el ruido de la app pública.
+- **Sentry** para errores y crashes, con alertas a Slack y un proyecto por superficie. Un error del backoffice no puede perderse en el ruido de la app pública.
 - **PostHog** para comportamiento de producto.
-- **Pino** para logs estructurados en JSON. Con `requestId` correlacionado. Nunca `console.log` en
-  producción, y nunca datos personales ni tokens en los logs.
-- **Uptime monitoring** externo (BetterStack o UptimeRobot, tier gratuito). Si tu app se cae, te
-  enteras tú antes que el cliente.
+- **Pino** para logs estructurados en JSON con `requestId` correlacionado. Nunca `console.log` en producción, y nunca datos personales ni tokens en los logs.
+- **Uptime externo** (BetterStack o UptimeRobot, tier gratuito).
 
-**Al escalar:**
+**Al escalar:** OpenTelemetry cuando haya más de un servicio, logs centralizados y buscables, dashboards de métricas de negocio (no solo técnicas) y alertas con on-call definido.
 
-- **OpenTelemetry** para trazas distribuidas cuando hay más de un servicio.
-- Logs centralizados y buscables (BetterStack, Axiom o Grafana Loki).
-- Dashboards de métricas de negocio, no solo técnicas.
-- Alertas con on-call definido y umbrales acordados.
+</details>
 
 ---
 
-# Stack B — BACKEND DEDICADO (NestJS)
+<div align="center">
 
-Esta parte **no repite el stack**. Describe únicamente el delta contra el Stack base: cuándo cruzar,
-qué se conserva, qué se retira, qué se reemplaza y qué se agrega. Lo que cambia es **dónde vive la lógica de negocio** y
-**quién habla con la base**.
+# 🏗️ Para cuando es necesario un backend dedicado
 
-**No agregar un backend dedicado si:** lo único que pasa es que el proyecto "va creciendo". Crecer no
-es un disparador. El stack base aguanta mucho más de lo que la gente supone. El backend dedicado agrega un
-servicio que operar, desplegar, monitorear y pagar.
+</div>
 
-## 21. Cuándo pasar al backend dedicado
+Llega un punto en que meter la lógica dentro de Next.js deja de tener sentido. **Crecer no es el disparador** — el stack de arriba aguanta muchísimo más de lo que la gente supone. Lo es alguna de estas:
 
-Cuando se cumple **cualquiera** de estas señales.
+> 📱 La app móvil es el cliente principal · ⏱️ Procesos que superan el límite de serverless · 🔌 Hace falta conexión persistente (WebSocket propio, MQTT, workers) · 🏢 Un tercero va a consumir la API · 📐 La lógica dejó de ser CRUD · 👥 Más de un desarrollador backend · 💸 Trabajos en cola que fallan y cuestan dinero
 
-| Señal | Por qué obliga |
+Y hay productos que nacen aquí directamente: plataformas IoT con ingesta de telemetría, productos donde la app móvil *es* el producto, sistemas con GPU desde el día uno, o proyectos donde el cliente exige la API como entregable.
+
+Esto es lo que cambia. Nada más.
+
+### ➕ Lo que se agrega
+
+![NestJS](https://img.shields.io/badge/NestJS-E0234E?style=for-the-badge&logo=nestjs&logoColor=white)
+![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)
+![BullMQ](https://img.shields.io/badge/BullMQ-C1272D?style=for-the-badge)
+![OpenTelemetry](https://img.shields.io/badge/OpenTelemetry-000000?style=for-the-badge&logo=opentelemetry&logoColor=white)
+
+- **`apps/api` con NestJS**, un módulo por dominio de negocio. Guards, interceptores y pipes.
+- **`apps/worker`**, proceso aparte que consume las colas. Separado a propósito: un job pesado no puede degradar la latencia de la API, y cada uno escala por su lado.
+- **Redis deja de ser opcional y pasa a ser infraestructura base**: caché, colas, rate limiting, locks e idempotencia.
+- **BullMQ** con colas por tipo de trabajo, reintentos con backoff exponencial y **dead-letter queue** revisable desde el backoffice con Bull Board.
+- **`@nestjs/config` + Zod** validando el entorno al arrancar: si falta una variable, el proceso no levanta.
+- **`@nestjs/terminus`** con `/health/live` y `/health/ready`, que es lo que los orquestadores necesitan para no enrutar tráfico a un contenedor que aún no está listo.
+- **`@nestjs/throttler` sobre Redis**: rate limiting por endpoint y por rol.
+- **Docker + docker-compose** para levantar Postgres, Redis, API y worker en un comando.
+- **Staging real**: su propio proyecto de Supabase, su propia Redis, su propia API.
+- **OpenTelemetry**, porque ya hay más de un servicio y una petición tiene que poder seguirse desde el clic hasta el job en la cola.
+- **Log de auditoría** en tabla propia — barato ahora, porque todo pasa por el mismo interceptor.
+- **Secretos centralizados** (Doppler o Infisical): con cinco entornos de ejecución, copiar claves a mano es la fuente de errores.
+- **Supertest** para los tests de API.
+- *Según el producto:* `@nestjs/websockets`, broker MQTT, TimescaleDB.
+
+### 🔄 Lo que se reemplaza
+
+| | |
 |---|---|
-| **La app móvil es el cliente principal.** | No tiene sentido que la API de la que depende el producto viva dentro de un frontend web que es secundario. |
-| **Procesos que superan el límite de las funciones serverless.** | Generación de reportes pesados, procesamiento de video, ETL, cargas de GPU. Los límites de tiempo y memoria no dan. |
-| **Se necesita conexión persistente.** | WebSocket propio, broker MQTT, workers de cola consumiendo sin parar. Serverless no sostiene procesos. |
-| **Un tercero va a consumir la API.** | Clientes, integradores o dispositivos necesitan un contrato estable, versionado, con su propio ciclo de vida y su propio rate limit. |
-| **Lógica de negocio con muchos módulos y reglas.** | Facturación, inventario, agendamiento, motores de reglas. Cuando la lógica deja de ser CRUD, necesita estructura impuesta. |
-| **Más de un desarrollador backend.** | Módulos, inyección de dependencias y límites claros dejan de ser ceremonia y pasan a ser lo que evita pisarse. |
-| **Trabajos en cola que fallan y cuestan dinero.** | Si necesitas BullMQ, necesitas un proceso encendido (§11.2). |
+| Server Actions + Route Handlers | → **NestJS**: controllers, providers, módulos, guards |
+| Zod suelto en cada handler | → **`nestjs-zod`**, consumiendo los **mismos** esquemas de `packages/shared` |
+| OpenAPI con `zod-openapi` | → **`@nestjs/swagger` + `nestjs-zod`** |
+| Sesión leída con `supabase-js` | → **Guard que verifica el JWT** contra el JWKS de Supabase |
+| Autorización por RLS | → **Guards + CASL en el backend**, con el filtro de tenencia explícito en cada query |
+| `supabase-js` como cliente de datos | → **Cliente OpenAPI generado** (`orval` / `openapi-fetch`) en las cinco superficies |
+| Drizzle importado por el frontend | → **Drizzle solo dentro de NestJS**; `packages/db` deja de ser compartido |
+| Migraciones desde el dashboard | → **`drizzle-kit` desde el pipeline** |
+| `unstable_cache` de Next | → **`CacheModule` de Nest sobre Redis** |
+| Vercel Cron | → **`@nestjs/schedule`** + repeatable jobs de BullMQ |
+| Pino suelto | → **`nestjs-pino`** con `AsyncLocalStorage`, `requestId` propagado hasta los jobs |
+| Sentry solo en frontends | → **+ Sentry Node** en API y worker |
+| Solo Vercel | → **Vercel** (webs) **+ contenedor** en Railway o Fly.io (api y worker) |
 
-### 21.1 Proyectos que nacen en stack B
+> **Sobre RLS:** sigue activo, pero ya no como única defensa — NestJS se conecta con identidad de servicio y pasaría todo. Se queda como defensa en profundidad y porque **sigue gobernando las suscripciones de Realtime**, que se conectan con la anon key. Una tabla nueva nace con RLS activo igual. Cuesta cero.
 
-Algunos productos arrancan directamente aquí:
+### ➖ Lo que se elimina
 
-- Plataformas IoT con ingesta de telemetría (§13, opción 2).
-- Productos donde la app móvil **es** el producto y la web es secundaria.
-- Sistemas con procesamiento pesado o GPU desde el día uno.
-- Proyectos donde el cliente exige la API como entregable.
+- **Server Actions como capa de negocio.** Sobreviven solo para lo que es estrictamente del frontend: revalidar caché, el formulario de contacto de la landing, preferencias de UI. Ninguna vuelve a tocar la base.
+- **Route Handlers como API del producto.** `app/api/*` deja de ser el backend; quedan el callback de auth, el health check, revalidate y los proxies de sesión.
+- **Acceso directo a la base desde el frontend.** `supabase-js` se conserva **solo** para auth y Realtime.
+- **La `service_role` key fuera del backend.** Ninguna app web vuelve a tener una clave con poder sobre la base.
+- **Vercel Cron como orquestador.** `pg_cron` sobrevive, pero solo para mantenimiento SQL.
+- **QStash / Inngest / Trigger.dev.** Ya hay servidor: BullMQ sale más barato y da control total. Inngest se queda únicamente si hay flujos de negocio largos donde su visibilidad valga el costo.
+- **Supavisor en modo transacción.** NestJS es un proceso persistente con pool propio.
 
----
-
-## 22. Qué NO cambia
-
-- **TypeScript estricto + Zod**. Los mismos esquemas que validaban Server Actions ahora validan controllers de Nest.
-- **Supabase como base de datos** (o Postgres + Drizzle autohospedado, §9.2).
-- **Supabase Auth** como proveedor de identidad. El login sigue siendo el mismo lo que cambia es quién valida el token (§24).
-- **Supabase Realtime** para la capa de UI en vivo.
-- **Cloudflare R2** como almacenamiento principal, Supabase Storage como alternativa.
-- **Los cuatro productos**: landing, web clientes, web backoffice y móvil. Siguen siendo Next.js
-  y Expo, con Tailwind, shadcn/ui, NativeWind, TanStack Query y Zustand.
-- **REST + OpenAPI desde Zod** como contrato (§8). Es el mismo contrato: solo cambia quién lo sirve.
-- **Turborepo + pnpm**, **Biome**, **Vitest**, **Playwright**.
-- **Stripe, Resend, Sentry, PostHog**.
-- Todo lo de §19 (seguridad) y §20 (observabilidad), con las adiciones de §25.
+> ✅ **Lo que parece que se va y no se va:** la caché nativa de Next.js sigue viva para páginas e ISR. Lo que se muda es el caché de datos de negocio.
 
 ---
 
-## 23. Qué se retira
+## 🗑️ Lo que probé y no me quedé
 
-| Se retira | Por qué |
+<details>
+<summary><b>Doce tecnologías buenas que no entraron, y por qué</b></summary>
+
+<br/>
+
+| | Por qué no |
 |---|---|
-| **Server Actions como capa de negocio** | La mutación ya no la ejecuta el frontend. Las webs llaman a la API. Se conservan solo para cosas que son estrictamente del frontend: revalidación de caché, formularios de contacto de la landing, preferencias de UI. Ninguna Server Action vuelve a tocar la base directamente. |
-| **Route Handlers como API del producto** | `app/api/*` deja de ser el backend. Sobreviven únicamente los que son de la propia web: callback de auth, health check, revalidate, y proxies de sesión. |
-| **Acceso directo a la base desde el frontend** | `supabase-js` deja de usarse como cliente de datos en web y móvil. Las lecturas y escrituras pasan por la API. `supabase-js` se conserva **solo** para auth y para suscripciones Realtime. |
-| **`service_role` en el frontend** | Deja de existir fuera del backend. Ninguna app web vuelve a tener una clave con poder sobre la base. |
-| **Vercel Cron como orquestador** | Lo reemplaza el scheduler del backend (§26). `pg_cron` sobrevive, pero solo para mantenimiento puramente SQL: purgas, vistas materializadas, agregados. |
-| **QStash / Inngest / Trigger.dev** | Fueron la solución a "colas sin servidor". Ya hay servidor: BullMQ es más barato por trabajo y da control total. Inngest se conserva solo si el producto tiene flujos de negocio largos de varios pasos donde su visibilidad vale el costo. |
-| **Supavisor en modo transacción para el backend** | Era necesario porque cada invocación serverless abría su conexión. NestJS es un proceso persistente con pool propio. El pooler sigue si quedan funciones serverless en las webs. |
+| **tRPC** | Tipado sin generar código, pero solo dentro del monorepo. Se rompe con consumidores externos y dispositivos. OpenAPI desde Zod da lo mismo y sobrevive al cambio. |
+| **Hono** | Framework excelente, y fue mi etapa intermedia un tiempo. Lo saqué porque obligaba a migrar dos veces: primero fuera de Next.js, después a NestJS. Dos modos claros cuestan menos que tres. |
+| **Express** | Sin tipado real y sin estructura. No hay razón para empezar algo nuevo aquí. |
+| **Flutter** | Gran framework, pero no comparte código ni ecosistema con la web en React. Serían dos culturas técnicas. |
+| **Firebase** | NoSQL complica reportes y relaciones, y el lock-in es mucho más fuerte que con Supabase — que al final es Postgres estándar. |
+| **GraphQL** | Resuelve coordinación entre varios equipos frontend y un backend compartido. No es mi caso, y cuesta caro en caché y rate limiting. |
+| **Redux Toolkit** | Resuelve algo que TanStack Query + Zustand ya cubren con menos código. |
+| **Clerk** | Muy buen producto, pero fragmenta la auth fuera de la base y encarece al escalar. |
+| **Tamagui** | La UI universal suena mejor de lo que resulta. Compartir tokens rinde casi igual con mucha menos complejidad. |
+| **ESLint + Prettier** | Biome hace ambos, en una herramienta y muchísimo más rápido. |
+| **Prisma** | Buen DX, pero el cliente generado pesa en serverless y el SQL que produce sorprende en queries complejas. |
+| **Kafka** | Sobredimensionado para mi volumen. MQTT + Postgres cubre la ingesta IoT con una fracción de la operación. |
+| **Nx** | Más potente que Turborepo, sí. Se justifica con 6+ apps o varios equipos; a mi escala la curva no se paga. |
 
-**Lo que NO se retira aunque lo parezca:** la caché nativa de Next.js sigue viva para páginas e
-ISR. Lo que se va es `unstable_cache` sobre datos de negocio, que ahora cachea el backend.
-
----
-
-## 24. Qué se reemplaza
-
-| Del stack base | Pasa a ser | Nota |
-|---|---|---|
-| Server Actions + Route Handlers | **NestJS**: controllers, providers, módulos, guards, interceptores, pipes | Un módulo por dominio de negocio. La estructura impuesta es el punto: es lo que hace que el código de tres desarrolladores se parezca. |
-| Zod suelto en cada handler | **`nestjs-zod`** (`createZodDto` + `ZodValidationPipe`) | Consume los **mismos** esquemas de `packages/shared`. No se reescribe nada. |
-| OpenAPI con `zod-openapi` | **`@nestjs/swagger` + `nestjs-zod`** | El documento se genera del mismo Zod. Los clientes de `packages/api-client` se regeneran y siguen tipados igual. |
-| Sesión leída con `supabase-js` en el servidor de Next | **Verificación del JWT de Supabase en NestJS** | Guard con `passport-jwt` validando contra el JWKS de Supabase. El token que emite Supabase Auth es el mismo; cambia quién lo verifica. |
-| **Autorización por RLS** | **Guards + CASL en el backend** | Ver §24.1. |
-| `supabase-js` como cliente de datos | **Cliente OpenAPI generado** (`orval` / `openapi-fetch`) en los cuatro productos | Una sola forma de hablar con los datos, idéntica en web y móvil. |
-| Cliente de base en el frontend | **Drizzle dentro de NestJS**, con el esquema en `packages/db` | El esquema deja de ser compartido con el frontend: solo el backend importa `packages/db`. |
-| Migraciones con Supabase CLI | **`drizzle-kit` ejecutado desde el pipeline** | Sigue siendo el Postgres de Supabase. Cambia quién es dueño del esquema: el repo del backend, no el dashboard. |
-| `unstable_cache` de Next | **`CacheModule` de Nest sobre Redis** | La caché de páginas de Next se queda; la de datos de negocio se muda. |
-| Vercel Cron | **`@nestjs/schedule`** + BullMQ repeatable jobs | Los trabajos programados viven junto a la lógica que ejecutan, con reintentos reales. |
-| QStash / Inngest | **BullMQ sobre Redis**, con `apps/worker` | Ver §27. |
-| Supavisor (modo transacción) | **Pool de conexiones del proceso** (`pg.Pool` vía Drizzle) | Un proceso, un pool, conexiones reutilizadas. Más eficiente que cualquier pooler externo. |
-| Pino en Route Handlers | **`nestjs-pino`** con `AsyncLocalStorage` | `requestId` propagado automáticamente por toda la cadena, incluidos los jobs de la cola. |
-| Sentry solo en frontends | **+ Sentry Node SDK en API y worker** | Los errores de negocio ahora ocurren en el backend; ahí es donde hay que verlos. |
-| Vercel como único hosting | **Vercel (landing, app, admin) + contenedor (api, worker)** | Ver §26.2 |
-
-### 24.1 Qué pasa con RLS
-
-En stack base, RLS es la línea de defensa principal: el cliente habla con Postgres y la base decide
-qué puede ver. Ahora, NestJS se conecta con una identidad de servicio, así que **RLS ya no
-puede ser la única defensa** — pasaría todo.
-
-La decisión:
-
-- **La autorización real vive en el backend**: guards de NestJS + CASL para permisos finos, con
-  el `userId` y el rol extraídos del JWT verificado. Toda query lleva el filtro de tenencia
-  (`orgId`, `userId`) explícito en el código, no implícito en una política.
-- **RLS se mantiene activo**, como defensa en profundidad y porque **sigue gobernando el acceso
-  directo del cliente**: las suscripciones de Supabase Realtime siguen conectándose con la clave
-  anónima y el JWT del usuario. Si RLS se apagara, cualquiera con la anon key leería todo por
-  Realtime.
-- **Regla dura:** una tabla nueva sigue naciendo con RLS activo y política restrictiva, aunque el
-  backend sea quien la consulte. El costo es cero y el día que alguien exponga una lectura directa,
-  la base ya está cubierta.
+</details>
 
 ---
 
-## 25. Qué se agrega
+<div align="center">
 
-### 25.1 El backend
+### 📚 ¿Quieres el porqué de cada decisión?
 
-- **NestJS** con estructura por módulos de dominio.
-- **`@nestjs/config` + Zod** para validar las variables de entorno al arrancar. Si falta una, el
-  proceso no levanta.
-- **`@nestjs/terminus`** para health checks: `/health/live` y `/health/ready`. Los orquestadores
-  (Railway, Fly, ECS) los necesitan para no enrutar tráfico a un contenedor que aún no está listo.
-- **`@nestjs/throttler` sobre Redis** para rate limiting, ahora por endpoint y por rol.
-- **CORS explícito**: solo los dominios de las tres webs. La app móvil no lo necesita.
-- **Tests de API con Supertest** (`@nestjs/testing`), además de los Vitest existentes.
+Todo esto está argumentado en largo, con los disparadores exactos de cada migración:
 
-### 25.2 Colas y trabajos
+**[→ Leer el documento completo](docs/stack-detallado.md)**
 
-- **Redis deja de ser opción 2 y pasa a ser obligatorio.** En stack B es infraestructura base: caché,
-  colas, rate limiting, locks e idempotencia.
-- **BullMQ** con colas por tipo de trabajo, reintentos con backoff exponencial y **dead-letter
-  queue** revisable desde el backoffice.
-- **`apps/worker`**: proceso separado que consume las colas. Separado de la API a propósito — un
-  job pesado no puede degradar el tiempo de respuesta de la API, y cada uno escala por su lado.
-- **Bull Board** montado en el backoffice para ver, reintentar y purgar trabajos sin entrar a Redis.
-
-### 25.3 Infraestructura
-
-- **Docker** para API y worker, con **docker-compose** para el entorno de desarrollo local
-  (Postgres, Redis, API, worker en un solo comando).
-- **Staging real**: su propio proyecto de Supabase, su propia Redis y su propia API desplegada.
-  Con dos servicios más, probar en producción deja de ser una opción.
-- **Migraciones aplicadas desde el pipeline**, con la API arrancando solo después de que corran.
-
-### 25.4 Observabilidad y seguridad
-
-- **OpenTelemetry**: ya hay más de un servicio, así que las trazas distribuidas dejan de ser lujo.
-  Una petición debe poder seguirse desde el clic en la web hasta el job en la cola.
-- **Log de auditoría** en tabla propia: quién, qué, cuándo, desde dónde. En stack B es barato porque
-  todo pasa por el mismo interceptor de NestJS.
-- **Secretos centralizados** (Doppler o Infisical): ahora hay cinco entornos de ejecución
-  distintos con las mismas claves, y copiarlas a mano en cada uno se vuelve la fuente de errores.
-
-### 25.5 Opcionales, según el producto
-
-| Se agrega | Cuándo |
-|---|---|
-| **`@nestjs/websockets`** (Socket.IO) | Cuando se necesita push del servidor al cliente que Supabase Realtime no cubre: notificaciones de procesos largos, colaboración en vivo. |
-| **Broker MQTT** (EMQX / Mosquitto) | Telemetría IoT de alta frecuencia (§13, opción 2). NestJS lo consume con `@nestjs/microservices`. |
-| **TimescaleDB** | Series de tiempo con agregación y retención. |
+<br/>
 
 ---
 
-## 26. Arquitectura y monorepo en stack B
+**Michael Santiago** · v2.0 · Actualizado 2026-09-16
 
-```
-proyecto/
-├─ apps/
-│  ├─ landing/        # Next.js estático — dominio.com
-│  ├─ app/            # Next.js — app.dominio.com (clientes)
-│  ├─ backoffice/     # Next.js — ****.dominio.com (backoffice)
-│  ├─ mobile/         # Expo
-│  ├─ api/            # NestJS — api.dominio.com
-│  └─ worker/         # Consumidor de colas BullMQ
-├─ packages/
-│  ├─ shared/         # tipos y esquemas Zod — los consumen frontends Y backend
-│  ├─ db/             # esquema Drizzle y migraciones — SOLO lo importa el backend
-│  ├─ ui/             # design tokens, componentes web
-│  ├─ api-client/     # cliente REST tipado, generado desde el OpenAPI de apps/api
-│  └─ config/         # tsconfig, biome, presets
-├─ docker-compose.yml
-├─ turbo.json
-└─ pnpm-workspace.yaml
-```
+[![CC BY 4.0](https://img.shields.io/badge/Licencia-CC_BY_4.0-lightgrey?style=for-the-badge)](https://creativecommons.org/licenses/by/4.0/)
 
-### 26.1 Flujo de una petición
+Puedes copiarlo, adaptarlo y usarlo en tus proyectos, incluso comercialmente. Solo da crédito.
 
-```
-Cliente (web o móvil)
-  └─ token de Supabase Auth
-      └─ NestJS  ──guard: verifica JWT (JWKS de Supabase)
-                 ──guard: CASL, permisos del rol
-                 ──pipe:  valida con el Zod de packages/shared
-                 ──service ──> Postgres (Supabase) vía Drizzle
-                            └─> Redis (caché / cola)
-                                 └─> worker ──> Postgres, R2, Resend, Stripe
+Si lo adaptas para tu equipo me interesa saberlo — **sobre todo si llegaste a una conclusión distinta** en alguna decisión.
 
-UI en vivo: cliente ──suscripción Realtime──> Supabase (gobernado por RLS)
-```
-
-### 26.2 Hosting
-
-| Componente | Dónde | Por qué |
-|---|---|---|
-| landing, app, admin | **Vercel** | Sin cambios. CDN, previews por rama, ISR. |
-| **api** | **Railway** o **Fly.io** al inicio; VPS al escalar | Contenedor siempre encendido, deploy por git push, barato. |
-| **worker** | El mismo proveedor que la API, servicio aparte | Escala independiente. Un pico de trabajos no afecta la latencia de la API. |
-| **Redis** | Upstash, o Redis en contenedor junto a la API | Si ya hay contenedores, Redis propio sale más barato a volumen alto. |
-| Postgres | **Supabase** (sin cambios) | O autohospedado según §9.2. |
-| Cargas GPU / procesamiento pesado | Contenedor dedicado (ECS, EC2, RunPod, infraestructura propia) | **Nunca** en la API ni en serverless. Se invoca por cola desde el worker. |
-
----
-
-## 27. Migración A → B, paso a paso
-
-El orden importa: cada paso deja el sistema funcionando. No hay un "gran switch".
-
-1. **Crear `apps/api` vacío pero desplegado.** NestJS con health check, config validada y CI. Que
-   exista y se despliegue antes de que tenga lógica.
-2. **Mover el esquema a `packages/db` con Drizzle**, apuntando al mismo Postgres de Supabase.
-   Generar el esquema desde la base existente (`drizzle-kit introspect`). Nada cambia todavía.
-3. **Montar Redis y el worker**, aunque la primera cola sea trivial (envío de emails). Valida el
-   despliegue de un proceso persistente antes de que sea crítico.
-4. **Migrar el primer módulo de dominio**, el más aislado y menos crítico. Endpoint en Nest,
-   regenerar `packages/api-client`, y que la web lo consuma. Server Action correspondiente se borra.
-5. **Migrar los webhooks.** Stripe y cualquier entrante pasan a Nest, con idempotencia en Redis. 
-   Se cambia la URL en el dashboard del proveedor y se verifica con un evento de prueba.
-6. **Migrar los trabajos programados**: de Vercel Cron a `@nestjs/schedule` + BullMQ, uno por uno.
-7. **Migrar el resto de módulos**, del menos al más crítico. Auth y pagos al final.
-8. **Cortar el acceso directo del frontend a la base.** Rotar la `service_role` key y quitarla de
-   las variables de entorno de Vercel. Este es el punto de no retorno y la verificación real de que
-   la migración terminó.
-9. **Revisar RLS** bajo el criterio de §24.1: sigue activo, ahora como defensa en profundidad.
-10. **Agregar OpenTelemetry** y verificar que una traza cruza web → API → worker completa.
-
-**Qué NO hacer:** migrar todo en una rama larga. Cada módulo migrado va a `main` y a producción por
-su cuenta. Una rama de migración de tres semanas se vuelve imposible de mergear y nadie se atreve a
-desplegarla.
-
----
-
-# TRANSVERSAL
-
-## 28. Evaluadas y descartadas
-
-| Opción | Por qué no |
-|---|---|
-| **tRPC** | Tipado sin generar código, pero solo dentro del monorepo y con backend TypeScript acoplado. Se rompe con consumidores externos, dispositivos y NestJS. OpenAPI desde Zod da lo mismo y sobrevive al cambio de modo (§9.2). |
-| **Hono** | Excelente framework, y fue durante un tiempo nuestra etapa intermedia de backend. Se elimina porque obligaba a migrar dos veces: primero sacar el backend de Next.js a Hono, después reestructurarlo a NestJS al crecer el dominio. Dos modos claros cuestan menos que tres. Sigue siendo la elección correcta para un microservicio suelto con un solo propósito. |
-| Express | Sin tipado real y sin estructura. Para un servicio ligero hay opciones mejores; para uno grande, NestJS. No hay razón para empezar un proyecto nuevo en Express. |
-| Flutter | Excelente framework, pero no comparte código ni ecosistema con la web en React. Obligaría a mantener dos culturas técnicas. |
-| Firebase | NoSQL complica reportes y relaciones; el lock-in es mucho más fuerte que con Supabase, que al final es Postgres estándar. |
-| GraphQL | Resuelve coordinación entre varios equipos frontend y un backend compartido. No es nuestro caso, y cuesta caro en caché, control de queries y rate limiting. REST versionado es más simple de documentar y de consumir desde dispositivos. |
-| Redux Toolkit | Resuelve un problema que TanStack Query + Zustand ya cubren con menos código. |
-| Clerk | Muy buen producto, pero fragmenta la auth fuera de la base y encarece al escalar. |
-| Tamagui | La UI universal suena mejor de lo que resulta; compartir tokens rinde casi lo mismo con mucha menos complejidad. |
-| ESLint + Prettier | Biome hace ambos, en una herramienta y órdenes de magnitud más rápido. |
-| Prisma | Buen DX, pero el cliente generado pesa en serverless y el SQL que produce sorprende en queries complejas. Drizzle es más predecible y el esquema es TypeScript plano. |
-| Kafka | Sobredimensionado para nuestro volumen. MQTT + Postgres cubre la ingesta IoT con una fracción de la operación. |
-
----
-
-## Licencia
-
-© 2026 Michael Santiago. Este documento se publica bajo licencia
-[Creative Commons Attribution 4.0 International](https://creativecommons.org/licenses/by/4.0/)
-(CC BY 4.0): puedes copiarlo, adaptarlo y usarlo en tus propios proyectos, incluso
-comercialmente, siempre que des crédito.
-
-Si lo adaptas para tu equipo, me interesa saberlo — sobre todo si llegaste a una conclusión
-distinta en alguna decisión. El texto completo de la licencia está en [LICENSE](LICENSE).
+</div>
